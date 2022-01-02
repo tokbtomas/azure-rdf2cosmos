@@ -1,0 +1,6 @@
+hosts: [cjoakimcosmosgremlinbom.gremlin.cosmosdb.azure.com]
+port: 443
+username: /dbs/rdf2gremlin/colls/rdf2gremlin
+password: xxx.................................................................................==
+connectionPool: { enableSsl: true }
+serializer: { className: org.apache.tinkerpop.gremlin.driver.ser.GraphSONMessageSerializerV2d0, config: { serializeResultToString: true }}
