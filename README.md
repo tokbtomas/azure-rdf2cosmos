@@ -160,7 +160,8 @@ and to increase portability.
 - The Gradle build process creates an easily deployable uber-jar file
 - No framework is used, such as Spring
 - No logging libraries are used, such as Log4J.  System.out.println instead
-- Initial cache system used JSON files on local disk
+- Initial cache system uses JSON files on local disk
+- If necessary, a V2 cache system will use CosmosDB/SQL
 
 ### Gremlin Queries
 
