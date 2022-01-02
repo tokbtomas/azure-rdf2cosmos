@@ -8,13 +8,13 @@ A RDF to CosmosDB graph database migration process.
 
 ## The Conversion/Migration Process
 
-There are four steps to the process, each implemented as the following bash and powershell
-scripts.  The process is designed to support huge input files.
+There are four steps to the process, each implemented as the bash and powershell
+scripts listed below.  The process is designed to support huge input files.
 
 The first step converts the raw RDF (i.e. - *.rdf, *.ttl, etc.) files, exported from the
 source database, into ***.nt** files.  These are known as **triples**, and this conversion
 is done simply with an **Apache Jena** utility called **riot**.  Riot is an acronym for
-**RDF I/O technology (RIOT)**.
+**RDF I/O technology (RIOT)**.  Each triple consists of a subject, predicate, and object.
 
 **Apache Jena** is expected to be installed on the workstation/VM where this process executes;
 links and installation instructions below.
@@ -22,8 +22,8 @@ links and installation instructions below.
 The second step accumulates and transforms the *.nt files into Java objects that are persisted
 as JSON files.  The nt triples represent atomic data elements in an eventual Gremlin
 Vertex or Edge, and the nt files aren't necessarily sorted.  Therefore the atomic nt rows
-are aggregated into JSON Vertex and Edge documents.  The many Vertex and Edge JSON files are 
-each persisted to disk in the current implementation, but they could alternatively be persisted
+are **aggregated into JSON Vertex and Edge documents**.  The many Vertex and Edge JSON files are 
+each persisted to disk in the current implementation, but they can alternatively be persisted
 to a database (i.e. - CosmosDB/SQL or Azure PostgreSQL) to achieve scalability.
 
 The third step transforms the JSON files into a format suitable for loading into CosmosDB/Gremlin.
@@ -39,10 +39,11 @@ The following environment variables need to be set on the system that executes t
 
 ```
 AZURE_RDF2COSMOS_DATA_DIR
-AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT   
+AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT    
 ```
 
-The ...DATA_DIR defines the location of the root data directory in the project.
+The **AZURE_RDF2COSMOS_DATA_DIR** defines the location of the root data directory in the project.
+It can and should be **external to this github repo directory**.
 It can have the following structure:
 ```
 ├── cache
@@ -56,10 +57,11 @@ It can have the following structure:
     └── ... subdirectories as necessary ...
 ```
 
-The ..._OBJ_CACHE_COUNT refers the maximum number of Java objects that will be stored
-in the memory of the JVM in step two.  Once this size is reached the cache is flushed
-to disk.  Individual JSON objects will be reloaded into cache and augmented as necessary.
-This thus enables huge non-sorted input files.
+The **AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT** refers the maximum number of Java objects
+that will be stored in the memory of the JVM in step two.  Once this size is reached 
+the cache is flushed to disk.  Individual JSON objects will be reloaded into cache
+and augmented as necessary.  This design thus enables huge non-sorted input files that
+are beyond the memory constraints of the JVM.
 
 ### remote.yml Configuration File
 
@@ -92,6 +94,8 @@ $ .\dec_4_load_cosmosdb.ps1
 ---
 
 ## Apache Jena
+
+This project uses both the Apache Jena **riot** utility, and the Java **SDK**.
 
 - See https://jena.apache.org/
 - [RIOT](https://jena.apache.org/documentation/io/)
