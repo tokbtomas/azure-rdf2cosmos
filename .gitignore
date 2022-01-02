@@ -1,3 +1,15 @@
+## CJ
+
+**/.idea/
+**/cache/
+**/log/
+**/tdb0/
+**/tmp/
+**/*.class
+**/remote.yaml
+
+## Generated
+
 .gradle
 /build/
 
