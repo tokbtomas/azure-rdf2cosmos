@@ -2,9 +2,7 @@
 
 A RDF to CosmosDB graph database migration process.
 
-<p align="center"><img src="img/rdf2cosmos.png" width="90%"></p>
-
-This repo: https://github.com/cjoakim/azure-rdf2cosmos
+<p align="center"><img src="img/rdf2cosmos.png" width="100%"></p>
 
 ---
 
