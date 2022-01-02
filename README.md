@@ -82,14 +82,14 @@ $ ./dec_4_load_cosmosdb.sh
 
 ### Windows PowerShell Scripts
 
-TODO - implement these 
+```
+PS > .\dec_1_convert_raw_rdf_to_nt.ps1
+PS > .\dec_2_convert_nt_to_objects.ps1
+PS > .\dec_3_convert_objects_to_gremlin.ps1
+PS > .\dec_4_load_cosmosdb.ps1
+```
 
-```
-$ .\dec_1_convert_raw_rdf_to_nt.ps1
-$ .\dec_2_convert_nt_to_objects.ps1
-$ .\dec_3_convert_objects_to_gremlin.ps1
-$ .\dec_4_load_cosmosdb.ps1
-```
+Note, January 3, 2022: these PowerShell scripts are currently being refined and tested.
 
 ---
 

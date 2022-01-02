@@ -3,3 +3,5 @@
 # Chris Joakim, Microsoft, January 2022
 
 ./gradlew app:build
+
+./gradlew uberJar
