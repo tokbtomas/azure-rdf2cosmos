@@ -26,6 +26,6 @@ echo 'vamcu '$infile3
 riot --out nt $infile3 > $outfile3
 
 echo 'slbp '$infile4
-riot --out nt $infile4 > $outfile4
+riot --syntax n3 --out nt $infile4 > $outfile4
 
 echo 'done'
