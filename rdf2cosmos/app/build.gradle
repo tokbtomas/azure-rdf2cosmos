@@ -38,6 +38,12 @@ task displayAppConfig(type: JavaExec) {
     args 'app_config'
 }
 
+task checkCache(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.cjoakim.rdf2cosmos.Cache'
+    args 'x'
+}
+
 tasks.register('uberJar', Jar) {
     archiveClassifier = 'uber'
     duplicatesStrategy = 'include'
