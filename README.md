@@ -65,7 +65,7 @@ Note, January 3, 2022: these PowerShell scripts are currently being refined and 
 
 ### Java JDK
 
-- Java version 8 or higher (developed and tested with Java 11)
+- Java JDK version 11 or higher
 
 ### Git
 
