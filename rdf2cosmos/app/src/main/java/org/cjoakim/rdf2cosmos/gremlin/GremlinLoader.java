@@ -95,23 +95,27 @@ public class GremlinLoader {
         log("processGroovyStatement - lineNum: " + lineNum + " : " + groovyStatement);
         log("groovyStatement: " + groovyStatement);
 
-        ResultSet results = client.submit(groovyStatement);
-        CompletableFuture<List<Result>> completableFutureResults;
-        CompletableFuture<Map<String, Object>> completableFutureStatusAttributes;
-        List<Result> resultList;
-        Map<String, Object> statusAttributes;
+        List<Result> resultList = null;
 
         try {
+            ResultSet results = client.submit(groovyStatement);
+            CompletableFuture<List<Result>> completableFutureResults;
+            CompletableFuture<Map<String, Object>> completableFutureStatusAttributes;
+
+            Map<String, Object> statusAttributes;
+
             completableFutureResults = results.all();
             completableFutureStatusAttributes = results.statusAttributes();
             resultList = completableFutureResults.get();
             statusAttributes = completableFutureStatusAttributes.get();
         }
         catch (ExecutionException | InterruptedException e) {
+            log("ExecutionException on: " + groovyStatement);
             e.printStackTrace();
             return;
         }
         catch (Exception e) {
+            log("Exception on: " + groovyStatement);
             ResponseException re = (ResponseException) e.getCause();
 
             // Response status codes. You can catch the 429 status code response and work on retry logic.
