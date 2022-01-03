@@ -3,6 +3,7 @@ package org.cjoakim.rdf2cosmos;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.FileUtils;
+import org.apache.jena.datatypes.DatatypeFormatException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.StreamRDF;
@@ -94,15 +95,18 @@ public class AppRdfStream extends StreamRDFWrapper {
     @Override
     public void prefix(String prefix, String iri) {
 
-        prefixMap.put(prefix, iri);
-        prefixMap.put(iri, prefix);
-        log("AppRdfStream_prefix " + prefix + " | " + iri);
+        if (prefix != null) {
+            if (iri != null) {
+                prefixMap.put(prefix, iri);
+                prefixMap.put(iri, prefix);
+                log("AppRdfStream_prefix " + prefix + " | " + iri);
+            }
+        }
     }
 
     @Override
     public void quad(Quad quad) {
 
-        tripleCount++;
         log("AppRdfStream_quad | " + quad );
     }
 
@@ -115,76 +119,83 @@ public class AppRdfStream extends StreamRDFWrapper {
             String outfile = AppConfig.getMetaFilename("prefix_map.json");
             writeJsonObject(this.prefixMap, outfile);
         }
-        boolean tripleHandled = false;
-        Node s = triple.getSubject();
-        Node p = triple.getPredicate();
-        Node o = triple.getObject();
-        if (AppConfig.isVerbose()) {
-            logNode("subj", s);
-            logNode("pred", p);
-            logNode("obj", o);
-        }
 
-        if (isResourceUri(s)) {
-            // all triples are expected to have a subject that is a URI
-            GraphNode gn = null;
-            String vertexId1     = uriResourceId(s.getURI());
-            String resourceLabel = uriResourceLabel(s.getURI());
-
-            if (isResourceUri(o)) {
-                // this triple is an Edge as both subject and object are resource URIs
-                String vertexId2 = uriResourceId(o.getURI());
-                String label     = edgeLabel(p.toString());
-                edgeLabelsMap.put(label, p.toString());
-                String key = GraphNode.edgeCacheKey(vertexId1, vertexId2, label);
-                gn = this.accumulator.getGraphNode(key);
-                if (gn == null) {
-                    gn = new GraphNode(GraphNode.TYPE_EDGE);
-                    gn.setVertexId1(vertexId1);
-                    gn.setVertexId2(vertexId2);
-                    gn.setLabel(label);
-                    this.accumulator.putGraphNode(key, gn);
-                }
-                tripleHandled = true;
+        try {
+            boolean tripleHandled = false;
+            Node s = triple.getSubject();
+            Node p = triple.getPredicate();
+            Node o = triple.getObject();
+            if (AppConfig.isVerbose()) {
+                logNode("subj", s);
+                logNode("pred", p);
+                logNode("obj", o);
             }
-            else {
-                // this triple is a Vertex or Vertex Property
-                String key = GraphNode.vertexCacheKey(vertexId1);
-                gn = this.accumulator.getGraphNode(key);
-                if (gn == null) {
-                    gn = new GraphNode(GraphNode.TYPE_VERTEX);
-                    gn.setVertexId1(vertexId1);
-                    gn.setLabel(resourceLabel);
-                    this.accumulator.putGraphNode(vertexId1, gn);
-                }
 
-                if (o.isLiteral()) {
-                    String propName = uriLastNode(p.toString());
-                    String propValue = o.getLiteral().getValue().toString();
-                    String lang  = o.getLiteralLanguage();
-                    gn.addProperty(propName, propValue);
-                    if (isPopulated(lang)) {
-                        gn.addProperty(propName + "_lang", lang);
+            if (isResourceUri(s)) {
+                // all triples are expected to have a subject that is a URI
+                GraphNode gn = null;
+                String vertexId1     = uriResourceId(s.getURI());
+                String resourceLabel = uriResourceLabel(s.getURI());
+
+                if (isResourceUri(o)) {
+                    // this triple is an Edge as both subject and object are resource URIs
+                    String vertexId2 = uriResourceId(o.getURI());
+                    String label     = edgeLabel(p.toString());
+                    edgeLabelsMap.put(label, p.toString());
+                    String key = GraphNode.edgeCacheKey(vertexId1, vertexId2, label);
+                    gn = this.accumulator.getGraphNode(key);
+                    if (gn == null) {
+                        gn = new GraphNode(GraphNode.TYPE_EDGE);
+                        gn.setVertexId1(vertexId1);
+                        gn.setVertexId2(vertexId2);
+                        gn.setLabel(label);
+                        this.accumulator.putGraphNode(key, gn);
                     }
                     tripleHandled = true;
                 }
                 else {
-                    // TODO - implement logic?  No data encountered in this logic path.
+                    // this triple is a Vertex or Vertex Property
+                    String key = GraphNode.vertexCacheKey(vertexId1);
+                    gn = this.accumulator.getGraphNode(key);
+                    if (gn == null) {
+                        gn = new GraphNode(GraphNode.TYPE_VERTEX);
+                        gn.setVertexId1(vertexId1);
+                        gn.setLabel(resourceLabel);
+                        this.accumulator.putGraphNode(vertexId1, gn);
+                    }
+
+                    if (o.isLiteral()) {
+                        String propName = uriLastNode(p.toString());
+                        String propValue = o.getLiteral().getValue().toString();
+                        String lang  = o.getLiteralLanguage();
+                        gn.addProperty(propName, propValue);
+                        if (isPopulated(lang)) {
+                            gn.addProperty(propName + "_lang", lang);
+                        }
+                        tripleHandled = true;
+                    }
+                    else {
+                        // TODO - implement logic?  No data encountered in this logic path.
+                    }
                 }
             }
-        }
-        else {
-            log("ERROR - unexpected triple, subj not a resource URI: " + triple);
-        }
+            else {
+                log("ERROR - unexpected triple, subj not a resource URI: " + triple);
+            }
 
-        log("triple_handled: " + tripleHandled + " " + triple);
-        if (tripleHandled) {
-            tripleHandledCount++;
+            log("triple_handled: " + tripleHandled + " " + triple);
+            if (tripleHandled) {
+                tripleHandledCount++;
+            }
+            else {
+                tripleUnhandledCount++;
+            }
+            accumulator.flushCache(maxObjectCacheCount);
         }
-        else {
-            tripleUnhandledCount++;
+        catch (Exception e) {
+            log("Exception on triple " + getTripleCount() + ": " + triple);
+            e.printStackTrace();
         }
-        accumulator.flushCache(maxObjectCacheCount);
     }
 
     protected boolean isResourceUri(Node node) {

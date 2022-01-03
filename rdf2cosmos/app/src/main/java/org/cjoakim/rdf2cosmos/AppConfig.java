@@ -26,16 +26,16 @@ public class AppConfig {
         for (int i = 0; i < commandLineArgs.length; i++) {
             System.out.println("  arg " + i + " -> " + commandLineArgs[i]);
         }
-        log("AppConfig getDataDirectory:              " + getDataDirectory());
-        log("AppConfig getCacheDirectory:             " + getCacheDirectory());
-        log("AppConfig getMaxObjectCacheCount:        " + getMaxObjectCacheCount());
-        log("AppConfig isVerbose:                     " + isVerbose());
-        log("AppConfig getEnvVar(USER):               " + getEnvVar("USER"));
-        log("AppConfig getDataFileFqPath(a/b/x.json): " + getDataFileFqPath("a/b/x.json"));
-        log("AppConfig getCacheFilename(aaa):         " + getCacheFilename("aaa"));
-        log("AppConfig metaFilename(mmm.json):        " + getMetaFilename("mmm.json"));
-        log("AppConfig getGremlinFilename(ggg.txt):   " + getGremlinFilename("ggg.txt"));
-        log("AppConfig getTmpFilename(ttt.txt):       " + getTmpFilename("ttt.txt"));
+        log("AppConfig getDataDirectory:               " + getDataDirectory());
+        log("AppConfig getCacheDirectory:              " + getCacheDirectory());
+        log("AppConfig getMaxObjectCacheCount:         " + getMaxObjectCacheCount());
+        log("AppConfig isVerbose:                      " + isVerbose());
+        log("AppConfig getEnvVar(USER):                " + getEnvVar("USER"));
+        log("AppConfig getDataFileFqPath(x.json):      " + getDataFileFqPath("x.json"));
+        log("AppConfig getCacheFilename(aaa):          " + getCacheFilename("aaa"));
+        log("AppConfig metaFilename(mmm.json):         " + getMetaFilename("mmm.json"));
+        log("AppConfig getGremlinFilename(groovy.txt): " + getGremlinFilename("groovy.txt"));
+        log("AppConfig getTmpFilename(ttt.txt):        " + getTmpFilename("ttt.txt"));
     }
 
     public static void setCommandLineArgs(String[] args) {
