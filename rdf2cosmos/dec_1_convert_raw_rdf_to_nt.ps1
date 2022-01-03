@@ -16,16 +16,16 @@ $outfile3 = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\vamcu.
 $infile4  = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\slbp.rdf'
 $outfile4 = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\slbp.nt'
 
-echo 'mcutsl'
+echo 'mcutsl '$infile1
 riot --out nt $infile1 > $outfile1
 
-echo 'cmt'
-riot --out nt $infile1 > $outfile1
+echo 'cmt '$infile2
+riot --out nt $infile2 > $outfile2
 
-echo 'vamcu'
-riot --out nt $infile1 > $outfile1
+echo 'vamcu '$infile3
+riot --out nt $infile3 > $outfile3
 
-echo 'slbp'
-riot --out nt $infile1 > $outfile1
+echo 'slbp '$infile4
+riot --out nt $infile4 > $outfile4
 
 echo 'done'
