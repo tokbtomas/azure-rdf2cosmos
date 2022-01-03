@@ -15,6 +15,7 @@ repositories {
 dependencies {
     implementation 'org.apache.jena:jena-fuseki-fulljar:4.3.2'
     implementation 'org.apache.tinkerpop:gremlin-driver:3.4.0'
+    implementation 'org.postgresql:postgresql:42.2.12'
     implementation 'com.google.guava:guava:30.1.1-jre'
     testImplementation 'junit:junit:4.13.2'
 }
