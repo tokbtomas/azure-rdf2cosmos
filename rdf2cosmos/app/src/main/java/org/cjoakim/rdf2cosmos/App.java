@@ -12,6 +12,7 @@ import org.cjoakim.rdf2cosmos.gremlin.GroovyBuilder;
 import org.cjoakim.rdf2cosmos.gremlin.Property;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 /**
@@ -29,50 +30,57 @@ public class App {
             log("No command-line args; terminating...");
         }
         else {
-            AppConfig.setCommandLineArgs(args);
-            String function = args[0];
-            AppConfig.display();
+            try {
+                AppConfig.setCommandLineArgs(args);
+                String function = args[0];
+                AppConfig.display(false);
 
-            switch (function) {
+                switch (function) {
 
-                case "app_config":
-                    displayAppConfig();
-                    break;
+                    case "app_config":
+                        displayAppConfig();
+                        break;
 
-                case "convert_rdf_to_objects":
-                    String infile = args[1];
-                    convertRdfToObjects(infile);
-                    break;
+                    case "convert_rdf_to_objects":
+                        String infile = args[1];
+                        convertRdfToObjects(infile);
+                        break;
 
-                case "convert_objects_to_gremlin":
-                    convertObjectsToGremlinGroovy();
-                    break;
+                    case "convert_objects_to_gremlin":
+                        convertObjectsToGremlinGroovy();
+                        break;
 
-                case "load_cosmosdb_graph":
-                    String groovyStatementsFile = args[1];
-                    loadCosmosDbGraph(groovyStatementsFile);
-                    break;
+                    case "load_cosmosdb_graph":
+                        String groovyStatementsFile = args[1];
+                        loadCosmosDbGraph(groovyStatementsFile);
+                        break;
 
-                case "ad_hoc":
-                    AdHoc();
-                    break;
+                    case "ad_hoc":
+                        AdHoc();
+                        break;
 
-                default:
-                    log("unknown main function: " + function);
+                    default:
+                        log("unknown main function: " + function);
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
     private static void displayAppConfig() {
 
-        AppConfig.display();
+        AppConfig.display(false);
     }
 
-    private static void convertRdfToObjects(String infile) {
+    private static void convertRdfToObjects(String infile) throws Exception {
+
+        log("infile:   " + infile);
 
         String fqInfile = AppConfig.getDataFileFqPath(infile);
-        log("infile:   " + infile);
-        log("fqInfile: " + fqInfile);
+        File f = new File(fqInfile);
+        log("fqInfile: " + fqInfile + " exists: " + f.exists());
 
         Accumulator accumulator = new Accumulator();
 
@@ -80,11 +88,14 @@ public class App {
         StreamRDF output = StreamRDFLib.writer(System.out);
 
         // Wrap in a filter.
-        AppRdfStream customStream = new AppRdfStream(output);
-        customStream.setAccumulator(accumulator);
+        AppRdfStream outputStream = new AppRdfStream(output);
+        outputStream.setAccumulator(accumulator);
 
         // Call the parsing process.
-        RDFParser.source(fqInfile).parse(customStream);
+//        FileInputStream fis = new FileInputStream(fqInfile);
+//        RDFParser.source(fis).parse(outputStream);
+
+        RDFParser.source(fqInfile).parse(outputStream);
 
         log("App end_of_convertRdfToObjects with: " + infile);
     }

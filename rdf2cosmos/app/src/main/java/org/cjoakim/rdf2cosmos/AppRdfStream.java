@@ -50,7 +50,6 @@ public class AppRdfStream extends StreamRDFWrapper {
         prefixMap = new HashMap<String, String>();
         edgeLabelsMap = new HashMap<String, String>();
         maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
-        log("AppRdfStream stream dest class:   " + dest.getClass().getName());
         log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount);
     }
 

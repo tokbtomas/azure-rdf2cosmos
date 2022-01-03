@@ -20,7 +20,7 @@ public class AppConfig {
     // Class variables:
     private static String[] commandLineArgs = new String[0];
 
-    public static void display() {
+    public static void display(boolean extended) {
 
         log("AppConfig commandLineArgs.length: " + commandLineArgs.length);
         for (int i = 0; i < commandLineArgs.length; i++) {
@@ -29,13 +29,16 @@ public class AppConfig {
         log("AppConfig getDataDirectory:               " + getDataDirectory());
         log("AppConfig getCacheDirectory:              " + getCacheDirectory());
         log("AppConfig getMaxObjectCacheCount:         " + getMaxObjectCacheCount());
-        log("AppConfig isVerbose:                      " + isVerbose());
-        log("AppConfig getEnvVar(USER):                " + getEnvVar("USER"));
-        log("AppConfig getDataFileFqPath(x.json):      " + getDataFileFqPath("x.json"));
-        log("AppConfig getCacheFilename(aaa):          " + getCacheFilename("aaa"));
-        log("AppConfig metaFilename(mmm.json):         " + getMetaFilename("mmm.json"));
-        log("AppConfig getGremlinFilename(groovy.txt): " + getGremlinFilename("groovy.txt"));
-        log("AppConfig getTmpFilename(ttt.txt):        " + getTmpFilename("ttt.txt"));
+
+        if (extended) {
+            log("AppConfig isVerbose:                      " + isVerbose());
+            log("AppConfig getEnvVar(USER):                " + getEnvVar("USER"));
+            log("AppConfig getDataFileFqPath(x.json):      " + getDataFileFqPath("x.json"));
+            log("AppConfig getCacheFilename(aaa):          " + getCacheFilename("aaa"));
+            log("AppConfig metaFilename(mmm.json):         " + getMetaFilename("mmm.json"));
+            log("AppConfig getGremlinFilename(groovy.txt): " + getGremlinFilename("groovy.txt"));
+            log("AppConfig getTmpFilename(ttt.txt):        " + getTmpFilename("ttt.txt"));
+        }
     }
 
     public static void setCommandLineArgs(String[] args) {
@@ -155,7 +158,7 @@ public class AppConfig {
     public static void main(String[] args) {
 
         commandLineArgs = args;
-        display();
+        display(false);
     }
 
     private static void log(String msg) {
