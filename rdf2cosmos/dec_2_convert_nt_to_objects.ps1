@@ -18,10 +18,10 @@ $rdf_infile2 = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\cmt
 $rdf_infile3 = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\vamcu.nt'
 $rdf_infile4 = Join-Path $env:AZURE_RDF2COSMOS_DATA_DIR '\raw\december\gdata\slbp.nt'
 
-$log_outfile1="log\convert_rdf_to_objects1.txt"
-$log_outfile2="log\convert_rdf_to_objects2.txt"
-$log_outfile3="log\convert_rdf_to_objects3.txt"
-$log_outfile4="log\convert_rdf_to_objects4.txt"
+$log_outfile1="log\convert_nt_to_objects1.txt"
+$log_outfile2="log\convert_nt_to_objects2.txt"
+$log_outfile3="log\convert_nt_to_objects3.txt"
+$log_outfile4="log\convert_nt_to_objects4.txt"
 
 echo 'executing convert_rdf_to_objects with '$rdf_infile1
 java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile1 > $log_outfile1
