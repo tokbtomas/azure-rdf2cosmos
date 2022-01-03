@@ -82,6 +82,9 @@ public class AppConfig {
         if (path.startsWith(sep)) {
             return path;
         }
+        if (path.startsWith("C:")) {
+            return path;
+        }
         else {
             return getDataDirectory() + sep + path;
         }
