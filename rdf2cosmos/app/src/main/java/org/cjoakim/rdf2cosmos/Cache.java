@@ -42,15 +42,19 @@ public class Cache {
                 pgConnection = DriverManager.getConnection(props.getProperty("url"), props);
                 log("Database connection test: " + pgConnection.getCatalog());
 
-                PreparedStatement readStatement = pgConnection.prepareStatement("SELECT node_key, node_type, data FROM cache1;");
+                String sql = "SELECT key, type, data, created_at, updated_at, converted_at FROM node_cache;";
+                PreparedStatement readStatement = pgConnection.prepareStatement(sql);
                 ResultSet resultSet = readStatement.executeQuery();
                 long rowCount = 0;
                 while (resultSet.next()) {
                     rowCount++;
-                    String key  = resultSet.getString("node_key");
-                    String type = resultSet.getString("node_type");
+                    String key  = resultSet.getString("key");
+                    String type = resultSet.getString("type");
                     String data = resultSet.getString("data");
-                    log("row: " + key + " | " + type +  " | " + data);
+                    long   created_at   = resultSet.getLong("created_at");
+                    long   updated_at   = resultSet.getLong("updated_at");
+                    long   converted_at = resultSet.getLong("converted_at");
+                    log("row: " + key + " | " + type +  " | " + data + " | " + created_at + " | " + updated_at +  " | " + converted_at);
                 }
                 log("rows: " + rowCount);
             }

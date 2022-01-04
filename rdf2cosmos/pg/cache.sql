@@ -1,13 +1,20 @@
-drop table if exists cache1;
+drop table if exists node_cache;
 
-CREATE TABLE "cache1" (
-	"node_key"   character varying(255) unique not null,
-	"node_type"  character varying(8) not null,
-	"data" JSON not null
+CREATE TABLE "node_cache" (
+	"key"          character varying(255) unique not null,
+	"type"         character varying(8) not null,
+	"data"         JSON not null,
+	"created_at"   bigint default 0,
+	"updated_at"   bigint default 0,
+	"converted_at" bigint default 0
 );
 
-insert into cache1 values ('key1', 'vertex', '{"properties":{"cat":{"name":"cat","value":"Elsa","dataType":"string"}},"type":"vertex","vertexId1":"abc","vertexId2":null}');
+insert into node_cache values (
+	'key1', 
+	'vertex', 
+	'{"properties":{"cat":{"name":"cat","value":"Elsa","dataType":"string"}},"type":"vertex","vertexId1":"abc","vertexId2":null}',
+	 0, 0, 0);
 
-select count(*) from cache1;
+select count(*) from node_cache;
 
-select node_key, node_type, data from cache1;
+select * from node_cache;
