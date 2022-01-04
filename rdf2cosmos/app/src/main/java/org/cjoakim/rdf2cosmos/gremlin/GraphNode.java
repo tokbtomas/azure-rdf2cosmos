@@ -23,12 +23,15 @@ public class GraphNode {
     public static final String TYPE_EDGE   = "edge";
 
     // Instance variables:
-    protected String type = null;
-    protected String cacheKey  = null;
-    protected String vertexId1 = null;
-    protected String vertexId2 = null;
-    protected String label     = null;
+    protected String type        = null;
+    protected String cacheKey    = null;
+    protected String vertexId1   = null;
+    protected String vertexId2   = null;
+    protected String label       = null;
     protected HashMap<String, Property> properties = new HashMap<String, Property>();
+    protected long   createdAt   = 0;
+    protected long   updatedAt   = 0;
+    protected long   convertedAt = 0;
 
     public static synchronized String edgeCacheKey(String vertexId1, String vertexId2, String label) {
 
@@ -96,6 +99,46 @@ public class GraphNode {
     public void setProperties(HashMap<String, Property> properties) {
 
         this.properties = properties;
+    }
+
+    public void setType(String type) {
+
+        this.type = type;
+    }
+
+    public void setCacheKey(String cacheKey) {
+
+        this.cacheKey = cacheKey;
+    }
+
+    public long getCreatedAt() {
+
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+
+        this.createdAt = createdAt;
+    }
+
+    public long getUpdatedAt() {
+
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(long updatedAt) {
+
+        this.updatedAt = updatedAt;
+    }
+
+    public long getConvertedAt() {
+
+        return convertedAt;
+    }
+
+    public void setConvertedAt(long convertedAt) {
+
+        this.convertedAt = convertedAt;
     }
 
     public boolean isVertex() {
