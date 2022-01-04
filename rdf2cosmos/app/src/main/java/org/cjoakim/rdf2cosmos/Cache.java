@@ -44,7 +44,36 @@ public class Cache {
         return gn;
     }
 
-    public int insertGraphNode(GraphNode gn) throws Exception {
+    public boolean persistGraphNode(GraphNode gn) throws Exception {
+
+        if (gn == null) {
+            return false;
+        }
+        if (keyExists(gn.getCacheKey())) {
+            return updateGraphNode(gn);
+        }
+        else {
+            return insertGraphNode(gn);
+        }
+    }
+
+    public boolean keyExists(String key) throws Exception {
+
+        // select exists(select 1 from node_cache where key = 'key1')
+
+        String sql = "select count(key) from node_cache where key = ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, key);
+
+        ResultSet resultSet = stmt.executeQuery();
+        int count = 0;
+        while (resultSet.next()) {
+           count = resultSet.getInt(1);
+        }
+        return (count > 0) ? true : false;
+    }
+
+    public boolean insertGraphNode(GraphNode gn) throws Exception {
 
         String sql= "insert into node_cache values (?, ?, ?, ?, ?, ?);";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
@@ -54,7 +83,8 @@ public class Cache {
         stmt.setLong(4, System.currentTimeMillis());
         stmt.setLong(5, 0);
         stmt.setLong(6, 0);
-        return stmt.executeUpdate();
+        int count = stmt.executeUpdate();
+        return (count > 0) ? true : false;
     }
 
     public boolean updateGraphNode(GraphNode gn) throws Exception {
@@ -215,10 +245,11 @@ public class Cache {
         log(gn1a.toJson());
 
         log("=== insertGraphNode");
-        int ic = c.insertGraphNode(gn1a);
-        log("insert count: " + ic);
+        boolean i = c.insertGraphNode(gn1a);
+        log("insert count: " + i);
 
-
+        log("key exists xxxx: " + c.keyExists("xxxx"));
+        log("key exists key1: " + c.keyExists("key1"));
 
         c.close();
     }
