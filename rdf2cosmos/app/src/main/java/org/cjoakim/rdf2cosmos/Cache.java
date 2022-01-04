@@ -1,6 +1,10 @@
 package org.cjoakim.rdf2cosmos;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
+import org.cjoakim.rdf2cosmos.gremlin.Property;
 
 import java.sql.*;
 import java.util.*;
@@ -8,33 +12,36 @@ import java.util.*;
 public class Cache {
 
     // Instance variables:
-    private Connection        pgConnection;
-    private PreparedStatement getNodeStatement;
-    private PreparedStatement insertNodeStatement;
-    private PreparedStatement updateNodeStatement;
-    private PreparedStatement setConvertedStatement;
-    private PreparedStatement getUnconvertedStatement;
+    private Connection pgConnection;
 
+    public GraphNode getGraphNode(String key) throws Exception {
 
+        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where key = ? limit 1";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, key);
 
-    public GraphNode getGraphNode(String key) {
+        ResultSet resultSet = stmt.executeQuery();
+        GraphNode gn = null;
 
-//        String sql = "SELECT key, type, data, created_at, updated_at, converted_at FROM node_cache;";
-//        PreparedStatement readStatement = pgConnection.prepareStatement(sql);
-//        ResultSet resultSet = readStatement.executeQuery();
-//        long rowCount = 0;
-//        while (resultSet.next()) {
-//            rowCount++;
-//            String key = resultSet.getString("key");
-//            String type = resultSet.getString("type");
-//            String data = resultSet.getString("data");
-//            long created_at = resultSet.getLong("created_at");
-//            long updated_at = resultSet.getLong("updated_at");
-//            long converted_at = resultSet.getLong("converted_at");
-//            log("row: " + key + " | " + type + " | " + data + " | " + created_at + " | " + updated_at + " | " + converted_at);
-//        }
-//        log("rows: " + rowCount);
-        return null;
+        while (resultSet.next()) {
+            String type       = resultSet.getString("type");
+            String data       = resultSet.getString("data");
+            long created_at   = resultSet.getLong("created_at");
+            long updated_at   = resultSet.getLong("updated_at");
+            long converted_at = resultSet.getLong("converted_at");
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            gn = mapper.readValue(data, GraphNode.class);
+
+//            gn = new GraphNode();
+//            gn.setCacheKey(key);
+//            gn.setType(type);
+//            gn.setCreatedAt(created_at);
+//            gn.setUpdatedAt(updated_at);
+//            gn.setConvertedAt(converted_at);
+        }
+        return gn;
     }
 
     public boolean persistGraphNode(GraphNode gn) {
@@ -79,12 +86,7 @@ public class Cache {
             e.printStackTrace();
         }
 
-        pgConnection     = null;
-        getNodeStatement = null;
-        insertNodeStatement = null;
-        updateNodeStatement = null;
-        setConvertedStatement = null;
-        getUnconvertedStatement = null;
+        pgConnection = null;
     }
 
     // private methods below
@@ -157,11 +159,11 @@ public class Cache {
         String updateNodeSQL     = "update node_cache set data = ?, updated_at = ? where key = ?";
         String setConvertedSQL   = "update node_cache set converted_at = ? where key = ?";
 
-        getNodeStatement        = pgConnection.prepareStatement(getNodeSQL);
-        getUnconvertedStatement = pgConnection.prepareStatement(getUnconvertedSQL);
-        insertNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
-        updateNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
-        setConvertedStatement   = pgConnection.prepareStatement(setConvertedSQL);
+//        getNodeStatement        = pgConnection.prepareStatement(getNodeSQL);
+//        getUnconvertedStatement = pgConnection.prepareStatement(getUnconvertedSQL);
+//        insertNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
+//        updateNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
+//        setConvertedStatement   = pgConnection.prepareStatement(setConvertedSQL);
 
         log("Cache createPreparedStatements() completed");
         return true;
@@ -180,10 +182,19 @@ public class Cache {
     /**
      * This method is used for ad-hoc testing and development only.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         Cache c = new Cache();
         c.reconnect();
+
+        log("=== getGraphNode");
+        long t1 = System.currentTimeMillis();
+        GraphNode gn = c.getGraphNode("key1");
+        long t2 = System.currentTimeMillis();
+        log(gn.toJson());
+        log("elapsed: " + (t2 - t1));
+
+
         c.close();
     }
 }

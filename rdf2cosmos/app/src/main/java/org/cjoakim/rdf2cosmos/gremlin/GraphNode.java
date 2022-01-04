@@ -96,6 +96,10 @@ public class GraphNode {
         return properties;
     }
 
+    public void setData(String json) {
+
+    }
+
     public void setProperties(HashMap<String, Property> properties) {
 
         this.properties = properties;
