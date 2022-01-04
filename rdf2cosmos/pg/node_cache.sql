@@ -3,7 +3,7 @@ drop table if exists node_cache;
 CREATE TABLE "node_cache" (
 	"key"          character varying(255) unique not null,
 	"type"         character varying(8) not null,
-	"data"         JSON not null,
+	"data"         character varying(8000) unique not null,
 	"created_at"   bigint default 0,
 	"updated_at"   bigint default 0,
 	"converted_at" bigint default 0

@@ -44,17 +44,30 @@ public class Cache {
         return gn;
     }
 
-    public boolean persistGraphNode(GraphNode gn) {
+    public int insertGraphNode(GraphNode gn) throws Exception {
+
+        String sql= "insert into node_cache values (?, ?, ?, ?, ?, ?);";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, gn.getCacheKey());
+        stmt.setString(2, gn.getType());
+        stmt.setString(3, gn.toJson());
+        stmt.setLong(4, System.currentTimeMillis());
+        stmt.setLong(5, 0);
+        stmt.setLong(6, 0);
+        return stmt.executeUpdate();
+    }
+
+    public boolean updateGraphNode(GraphNode gn) throws Exception {
 
         return false;  //TODO
     }
 
-    public boolean setConverted(GraphNode gn) {
+    public boolean setConverted(GraphNode gn) throws Exception {
 
         return false;  // TODO
     }
 
-    public ArrayList<GraphNode> getUnconverted(ArrayList<String> keys) {
+    public ArrayList<GraphNode> getUnconverted(ArrayList<String> keys) throws Exception {
 
         ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
 
@@ -121,7 +134,7 @@ public class Cache {
                 log("pw length: " + ((String) props.get("password")).length());
 
                 pgConnection = DriverManager.getConnection(props.getProperty("url"), props);
-                pgConnection.setAutoCommit(false);
+                pgConnection.setAutoCommit(true);
                 long elapsedMs = System.currentTimeMillis() - startMs;
 
                 log("Database connection obtained in " + elapsedMs + " ms");
@@ -189,10 +202,22 @@ public class Cache {
 
         log("=== getGraphNode");
         long t1 = System.currentTimeMillis();
-        GraphNode gn = c.getGraphNode("key1");
+        GraphNode gn0 = c.getGraphNode("key1");
         long t2 = System.currentTimeMillis();
-        log(gn.toJson());
+        log(gn0.toJson());
         log("elapsed: " + (t2 - t1));
+
+        GraphNode gn1a = new GraphNode(GraphNode.TYPE_VERTEX);
+        gn1a.setVertexId1("miles_" + System.currentTimeMillis());
+        gn1a.getCacheKey();
+        gn1a.addProperty("color", "black");
+        gn1a.addProperty("type", "tux");
+        log(gn1a.toJson());
+
+        log("=== insertGraphNode");
+        int ic = c.insertGraphNode(gn1a);
+        log("insert count: " + ic);
+
 
 
         c.close();
