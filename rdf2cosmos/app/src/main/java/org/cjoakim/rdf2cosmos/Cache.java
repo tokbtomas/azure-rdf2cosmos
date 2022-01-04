@@ -8,22 +8,33 @@ import java.util.*;
 public class Cache {
 
     // Instance variables:
-    private Connection pgConnection = null;
-    private PreparedStatement getStatement = null;
-    private PreparedStatement persistStatement = null;
-    private PreparedStatement setConvertedStatement = null;
-    private PreparedStatement getConvertedStatement = null;
+    private Connection        pgConnection;
+    private PreparedStatement getNodeStatement;
+    private PreparedStatement insertNodeStatement;
+    private PreparedStatement updateNodeStatement;
+    private PreparedStatement setConvertedStatement;
+    private PreparedStatement getUnconvertedStatement;
 
-    public static void main(String[] args) {
 
-        Cache c = new Cache();
-        c.getPgConnection();
-        c.close();
-    }
 
     public GraphNode getGraphNode(String key) {
 
-        return null;  //TODO
+//        String sql = "SELECT key, type, data, created_at, updated_at, converted_at FROM node_cache;";
+//        PreparedStatement readStatement = pgConnection.prepareStatement(sql);
+//        ResultSet resultSet = readStatement.executeQuery();
+//        long rowCount = 0;
+//        while (resultSet.next()) {
+//            rowCount++;
+//            String key = resultSet.getString("key");
+//            String type = resultSet.getString("type");
+//            String data = resultSet.getString("data");
+//            long created_at = resultSet.getLong("created_at");
+//            long updated_at = resultSet.getLong("updated_at");
+//            long converted_at = resultSet.getLong("converted_at");
+//            log("row: " + key + " | " + type + " | " + data + " | " + created_at + " | " + updated_at + " | " + converted_at);
+//        }
+//        log("rows: " + rowCount);
+        return null;
     }
 
     public boolean persistGraphNode(GraphNode gn) {
@@ -46,21 +57,51 @@ public class Cache {
     }
 
 
-    private boolean reconnect() {
 
-        // TODO - establish pgConnection, and PreparedStatements
+    public boolean reconnect() {
 
-        return false;
+        log("Cache reconnect ...");
+        close();
+        return connect();
     }
 
-    private Connection getPgConnection() {
+    public void close() {
+
+        log("Cache close ...");
+        try {
+            if (pgConnection != null) {
+                pgConnection.close();
+                log("Cache connection closed");
+            }
+        }
+        catch (SQLException e) {
+            logException("unable to close JDBC Connection", e);
+            e.printStackTrace();
+        }
+
+        pgConnection     = null;
+        getNodeStatement = null;
+        insertNodeStatement = null;
+        updateNodeStatement = null;
+        setConvertedStatement = null;
+        getUnconvertedStatement = null;
+    }
+
+    // private methods below
+
+    /**
+     * Create a JDBC Connection to the target Azure PostgreSQL database.
+     * Return a boolean indicating success or failure to connect.
+     */
+    private boolean connect() {
 
         try {
             if (pgConnection != null) {
-                return pgConnection;
+                return true;
             }
             else {
                 // See https://docs.microsoft.com/en-us/azure/postgresql/connect-java
+                long startMs = System.currentTimeMillis();
                 StringBuilder sb = new StringBuilder();
                 sb.append("jdbc:postgresql://");
                 sb.append(AppConfig.getEnvVar("AZURE_PG_SERVER"));
@@ -78,47 +119,71 @@ public class Cache {
                 log("pw length: " + ((String) props.get("password")).length());
 
                 pgConnection = DriverManager.getConnection(props.getProperty("url"), props);
-                log("Database connection test: " + pgConnection.getCatalog());
+                pgConnection.setAutoCommit(false);
+                long elapsedMs = System.currentTimeMillis() - startMs;
 
-                String sql = "SELECT key, type, data, created_at, updated_at, converted_at FROM node_cache;";
-                PreparedStatement readStatement = pgConnection.prepareStatement(sql);
-                ResultSet resultSet = readStatement.executeQuery();
-                long rowCount = 0;
-                while (resultSet.next()) {
-                    rowCount++;
-                    String key  = resultSet.getString("key");
-                    String type = resultSet.getString("type");
-                    String data = resultSet.getString("data");
-                    long   created_at   = resultSet.getLong("created_at");
-                    long   updated_at   = resultSet.getLong("updated_at");
-                    long   converted_at = resultSet.getLong("converted_at");
-                    log("row: " + key + " | " + type +  " | " + data + " | " + created_at + " | " + updated_at +  " | " + converted_at);
-                }
-                log("rows: " + rowCount);
+                log("Database connection obtained in " + elapsedMs + " ms");
+
+                return createPreparedStatements();
             }
         }
         catch (SQLException e) {
+            logException("unable to establish JDBC Connection or PreparedStatements", e);
             e.printStackTrace();
+            return false;
         }
-        return pgConnection;
     }
 
-    public void close() {
+    /**
+     * All SQL for the application is defined in this method.
+     */
+    private boolean createPreparedStatements() throws SQLException {
 
-        log("closing pgConnection...");
-        try {
-            if (pgConnection != null) {
-                pgConnection.close();
-                log("pgConnection closed");
-            }
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // The DDL for the node_cache table looks like this:
+        //
+        // CREATE TABLE "node_cache" (
+        //   "key"          character varying(255) unique not null,
+        //	 "type"         character varying(8) not null,
+        //	 "data"         JSON not null,
+        //	 "created_at"   bigint default 0,
+        //	 "updated_at"   bigint default 0,
+        //	 "converted_at" bigint default 0);
+
+        log("Cache createPreparedStatements() ...");
+
+        String getNodeSQL        = "select key, type, data, created_at, updated_at, converted_at from node_cache where key = ?";
+        String getUnconvertedSQL = "select key, type, data, created_at, updated_at, converted_at from node_cache where type = ? and converted_at < 1 order by key";
+        String insertNodeSQL     = "insert into node_cache values (?, ?, ?, ?, ?, ?);";
+        String updateNodeSQL     = "update node_cache set data = ?, updated_at = ? where key = ?";
+        String setConvertedSQL   = "update node_cache set converted_at = ? where key = ?";
+
+        getNodeStatement        = pgConnection.prepareStatement(getNodeSQL);
+        getUnconvertedStatement = pgConnection.prepareStatement(getUnconvertedSQL);
+        insertNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
+        updateNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
+        setConvertedStatement   = pgConnection.prepareStatement(setConvertedSQL);
+
+        log("Cache createPreparedStatements() completed");
+        return true;
+    }
+
+    private static void logException(String msg, Exception e) {
+
+        log("Cache EXCEPTION: " + msg + " class: " + e.getClass().getCanonicalName() + " msg: " + e.getMessage());
     }
 
     private static void log(String msg) {
 
         System.out.println(msg);
+    }
+
+    /**
+     * This method is used for ad-hoc testing and development only.
+     */
+    public static void main(String[] args) {
+
+        Cache c = new Cache();
+        c.reconnect();
+        c.close();
     }
 }
