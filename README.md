@@ -6,6 +6,27 @@ A RDF to CosmosDB graph database migration process.
 
 ---
 
+## Property Graphs
+
+<p align="center"><img src="img/rdf2cosmos.png" width="100%"></p>
+
+- Vertices are the **entities**
+- Edges are the relationships between the Vertices
+  - Each Edge is a **one-way relationship**
+  - There can be multiple Edges connecting two Vertices
+- Both Vertices and Edges can have **Properties**
+- The database is **schemaless**, there are no ontologies
+- Querying a Property Graph database is called a **Traversal**
+
+## Azure CosmosDB
+
+- Infinitely scalable PaaS service
+  - Scale is defined by **Request Units (RUs)**
+- Implements the open-source Apache Tinkerpop and Gremlin APIs **wire protocol**
+- Actual physical implementation is based on the Azure CosmosDB foundation
+
+---
+
 ## The Conversion/Migration Process
 
 There are four steps to the process, each implemented as the bash and powershell
