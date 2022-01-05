@@ -8,10 +8,10 @@ A RDF to CosmosDB graph database migration process.
 
 ## Property Graphs
 
-<p align="center"><img src="img/rdf2cosmos.png" width="100%"></p>
+<p align="center"><img src="img/sample-graph.png" width="90%"></p>
 
-- Vertices are the **entities**
-- Edges are the relationships between the Vertices
+- **Vertices** are the **entities**
+- **Edges** are the **relationships** between the Vertices
   - Each Edge is a **one-way relationship**
   - There can be multiple Edges connecting two Vertices
 - Both Vertices and Edges can have **Properties**
@@ -20,9 +20,10 @@ A RDF to CosmosDB graph database migration process.
 
 ## Azure CosmosDB
 
+- [Intro to Gremlin API in Azure CosmosDB](https://docs.microsoft.com/en-us/azure/cosmos-db/graph/graph-introduction)
 - Infinitely scalable PaaS service
   - Scale is defined by **Request Units (RUs)**
-- Implements the open-source Apache Tinkerpop and Gremlin APIs **wire protocol**
+- Implements the open-source **Apache Tinkerpop and Gremlin APIs wire protocol**
 - Actual physical implementation is based on the Azure CosmosDB foundation
 
 ---
