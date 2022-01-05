@@ -247,6 +247,12 @@ and to increase portability.
 ```
 g.V().count()
 g.E().count()
+
+g.V('z584e6bb0-2497-d97a-a0af-41f37462c9a9', 'z584e6bb0-2497-d97a-a0af-41f37462c9a9')
+
+g.V(['z584e6bb0-2497-d97a-a0af-41f37462c9a9', 'z584e6bb0-2497-d97a-a0af-41f37462c9a9']).inE().limit(100) 
+
+g.V(['z584e6bb0-2497-d97a-a0af-41f37462c9a9', 'z584e6bb0-2497-d97a-a0af-41f37462c9a9']).inE().limit(11).as('e').outV().as('v').select('e', 'v') 
 ```
 
 ### Public RDF Data Sources
