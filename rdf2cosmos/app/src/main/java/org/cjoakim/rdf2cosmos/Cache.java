@@ -13,9 +13,19 @@ public class Cache {
 
     // Instance variables:
     private Connection pgConnection;
+    private boolean    connected;
+
+    public Cache() {
+
+        super();
+        connected = connect();
+    }
 
     public GraphNode getGraphNode(String key) throws Exception {
 
+        if (!connected) {
+            reconnect();
+        }
         String sql = "select type, data, created_at, updated_at, converted_at from node_cache where key = ? limit 1";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
         stmt.setString(1, key);
@@ -33,13 +43,6 @@ public class Cache {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             gn = mapper.readValue(data, GraphNode.class);
-
-//            gn = new GraphNode();
-//            gn.setCacheKey(key);
-//            gn.setType(type);
-//            gn.setCreatedAt(created_at);
-//            gn.setUpdatedAt(updated_at);
-//            gn.setConvertedAt(converted_at);
         }
         return gn;
     }
@@ -59,8 +62,6 @@ public class Cache {
 
     public boolean keyExists(String key) throws Exception {
 
-        // select exists(select 1 from node_cache where key = 'key1')
-
         String sql = "select count(key) from node_cache where key = ?";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
         stmt.setString(1, key);
@@ -73,46 +74,89 @@ public class Cache {
         return (count > 0) ? true : false;
     }
 
+    public boolean updateGraphNode(GraphNode gn) throws Exception {
+
+        long epoch = System.currentTimeMillis();
+        gn.setUpdatedAt(epoch);
+
+        String sql= "update node_cache set data = ?, updated_at = ? where key = ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, gn.toJson());
+        stmt.setLong(2, epoch);
+        stmt.setString(3, gn.getCacheKey());
+
+        int count = stmt.executeUpdate();
+        return (count > 0) ? true : false;
+    }
+
     public boolean insertGraphNode(GraphNode gn) throws Exception {
 
-        String sql= "insert into node_cache values (?, ?, ?, ?, ?, ?);";
+        long epoch = System.currentTimeMillis();
+        gn.setCreatedAt(epoch);
+        gn.setUpdatedAt(epoch);
+
+        String sql= "insert into node_cache values (?, ?, ?, ?, ?, ?)";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
         stmt.setString(1, gn.getCacheKey());
         stmt.setString(2, gn.getType());
         stmt.setString(3, gn.toJson());
-        stmt.setLong(4, System.currentTimeMillis());
-        stmt.setLong(5, 0);
+        stmt.setLong(4, epoch);
+        stmt.setLong(5, epoch);
         stmt.setLong(6, 0);
         int count = stmt.executeUpdate();
         return (count > 0) ? true : false;
     }
 
-    public boolean updateGraphNode(GraphNode gn) throws Exception {
-
-        return false;  //TODO
-    }
-
     public boolean setConverted(GraphNode gn) throws Exception {
 
-        return false;  // TODO
+        long epoch = System.currentTimeMillis();
+        gn.setConvertedAt(epoch);
+
+        String sql= "update node_cache set updated_at = ?, converted_at = ? where key = ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setLong(1, epoch);
+        stmt.setLong(2, epoch);
+        stmt.setString(3, gn.getCacheKey());
+
+        int count = stmt.executeUpdate();
+        return (count > 0) ? true : false;
     }
 
     public ArrayList<GraphNode> getUnconverted(ArrayList<String> keys) throws Exception {
 
         ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
 
-        // TODO
+        if (!connected) {
+            reconnect();
+        }
+        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where converted_at = 0 limit ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setInt(1, 100);
 
+        ResultSet resultSet = stmt.executeQuery();
+        GraphNode gn = null;
+
+        while (resultSet.next()) {
+            String type       = resultSet.getString("type");
+            String data       = resultSet.getString("data");
+            long created_at   = resultSet.getLong("created_at");
+            long updated_at   = resultSet.getLong("updated_at");
+            long converted_at = resultSet.getLong("converted_at");
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            gn = mapper.readValue(data, GraphNode.class);
+            nodes.add(gn);
+        }
         return nodes;
     }
-
-
 
     public boolean reconnect() {
 
         log("Cache reconnect ...");
         close();
-        return connect();
+        connected = connect();
+        return connected;
     }
 
     public void close() {
@@ -128,7 +172,7 @@ public class Cache {
             logException("unable to close JDBC Connection", e);
             e.printStackTrace();
         }
-
+        connected = false;
         pgConnection = null;
     }
 
@@ -168,8 +212,7 @@ public class Cache {
                 long elapsedMs = System.currentTimeMillis() - startMs;
 
                 log("Database connection obtained in " + elapsedMs + " ms");
-
-                return createPreparedStatements();
+                return true;
             }
         }
         catch (SQLException e) {
@@ -177,39 +220,6 @@ public class Cache {
             e.printStackTrace();
             return false;
         }
-    }
-
-    /**
-     * All SQL for the application is defined in this method.
-     */
-    private boolean createPreparedStatements() throws SQLException {
-
-        // The DDL for the node_cache table looks like this:
-        //
-        // CREATE TABLE "node_cache" (
-        //   "key"          character varying(255) unique not null,
-        //	 "type"         character varying(8) not null,
-        //	 "data"         JSON not null,
-        //	 "created_at"   bigint default 0,
-        //	 "updated_at"   bigint default 0,
-        //	 "converted_at" bigint default 0);
-
-        log("Cache createPreparedStatements() ...");
-
-        String getNodeSQL        = "select key, type, data, created_at, updated_at, converted_at from node_cache where key = ?";
-        String getUnconvertedSQL = "select key, type, data, created_at, updated_at, converted_at from node_cache where type = ? and converted_at < 1 order by key";
-        String insertNodeSQL     = "insert into node_cache values (?, ?, ?, ?, ?, ?);";
-        String updateNodeSQL     = "update node_cache set data = ?, updated_at = ? where key = ?";
-        String setConvertedSQL   = "update node_cache set converted_at = ? where key = ?";
-
-//        getNodeStatement        = pgConnection.prepareStatement(getNodeSQL);
-//        getUnconvertedStatement = pgConnection.prepareStatement(getUnconvertedSQL);
-//        insertNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
-//        updateNodeStatement     = pgConnection.prepareStatement(updateNodeSQL);
-//        setConvertedStatement   = pgConnection.prepareStatement(setConvertedSQL);
-
-        log("Cache createPreparedStatements() completed");
-        return true;
     }
 
     private static void logException(String msg, Exception e) {
