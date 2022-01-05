@@ -16,7 +16,6 @@ A RDF to CosmosDB graph database migration process.
   - There can be multiple Edges connecting two Vertices
 - Both Vertices and Edges can have **Properties**
 - The database is **schemaless**, there are no ontologies
-- Querying a Property Graph database is called a **Traversal**
 
 ## Azure CosmosDB
 
@@ -25,21 +24,58 @@ A RDF to CosmosDB graph database migration process.
   - Scale is defined by **Request Units (RUs)**
 - Implements the open-source **Apache Tinkerpop and Gremlin APIs wire protocol**
 - Actual physical implementation is based on the Azure CosmosDB foundation
+- Multi-region replication
+- Query the database (i.e. - a **Traversal**) with the **Gremlin** syntax
 
 ---
 
 ## The Conversion/Migration Process
 
-There are four steps to the process, each implemented as the bash and powershell
-scripts listed below.  The process is designed to support huge input files.
+### Highlights
+
+- There are **four steps to the process**, each implemented as a bash/ps1 script
+  - See the list of scripts below
+- Implemented with **Java 11** and **Apache Jena**
+- **The process is designed to support huge input files**
+  - **streaming** Java APIs are used for reading
+  - not limited by JVM memory
+  - utilizes out-of-JVM caching for **Aggregated Vertex and Edge Data**
+    - Non-sequential input data re: Vertices, Edges, and their Properties
+    - v1 implementation uses JSON files on disk
+    - v2 implemention is Azure PostgreSQL
+      - v2 cache expected to be complete on 1/9 or sooner 
+- CosmosDB can be loaded in one of several ways
+  - As **groovy files** with Java Gremlin Driver (current implementation)
+    - Library org.apache.tinkerpop:gremlin-driver:3.4.0
+  - As CSV files with a DotNet Bulk Loader
+    - See https://github.com/cjoakim/azure-cosmosdb-gremlin-bulkloader
+  - New Graph Bulk Executor .NET library
+    - See https://docs.microsoft.com/en-us/azure/cosmos-db/graph/bulk-executor-graph-dotnet
+
+### Roadmap
+
+- Complete the v2 Cache implementation with Azure PostgreSQL
+- Create Docker containers for both Apache Jena and this custom Java code
+  - Docker containers are easier to deploy, and enable AKS/Kubernetes
+- Enable Azure Storage Blobs for IO
+
+### Step 1: Convert raw RDF files to NT Triples
 
 The first step converts the raw RDF (i.e. - *.rdf, *.ttl, etc.) files, exported from the
 source database, into ***.nt** files.  These are known as **triples**, and this conversion
 is done simply with an **Apache Jena** utility called **riot**.  Riot is an acronym for
 **RDF I/O technology (RIOT)**.  Each triple consists of a subject, predicate, and object.
+These nt files are easy to read and parse programmatically.
 
 **Apache Jena** is expected to be installed on the workstation/VM where this process executes;
 links and installation instructions below.
+
+Example script:
+```
+$ riot --out nt $ddir/raw/december/gdata/mcma_v1.ttl > $ddir/raw/december/gdata/mcma.nt
+```
+
+### Step 2: Read the NT Triples and Aggregate Vertex & Edge Data
 
 The second step accumulates and transforms the *.nt files into Java objects that are persisted
 as JSON files.  The nt triples represent atomic data elements in an eventual Gremlin
@@ -48,12 +84,31 @@ are **aggregated into JSON Vertex and Edge documents**.  The many Vertex and Edg
 each persisted to disk in the current implementation, but they can alternatively be persisted
 to a database (i.e. - CosmosDB/SQL or Azure PostgreSQL) to achieve scalability.
 
+Example script:
+```
+$ java -jar app/build/libs/app-uber.jar convert_rdf_to_objects $rdf_infile5 > $log_outfile5
+```
+
+### Step 3: Transform Aggregated data into a loadable format
+
 The third step transforms the JSON files into a format suitable for loading into CosmosDB/Gremlin.
 The current implementation uses the **Groovy** format.  Alternatively, CSV can be implemented
 in the future to enable the use of the 
 [azure-cosmosdb-gremlin-bulkloader](https://github.com/cjoakim/azure-cosmosdb-gremlin-bulkloader).
 
+Example script:
+```
+$ java -jar app/build/libs/app-uber.jar convert_objects_to_gremlin > $log_outfile
+```
+
+### Step 4: Load CosmosDB with the transformed loadable data 
+
 The fourth and final step of the process loads CosmosDB with the file(s) created in step 3.
+
+Example script:
+```
+$ java -jar app/build/libs/app-uber.jar load_cosmosdb_graph $infile > $log_outfile
+```
 
 ### Linux/macOS bash shell scripts
 
@@ -75,8 +130,6 @@ PS > .\dec_3_convert_objects_to_gremlin.ps1
 PS > .\dec_4_load_cosmosdb.ps1
 ```
 
-Note, January 3, 2022: these PowerShell scripts are currently being refined and tested.
-
 ---
 
 ## System Requirements
@@ -87,7 +140,7 @@ Note, January 3, 2022: these PowerShell scripts are currently being refined and 
 
 ### Java JDK
 
-- Java JDK version 11 or higher
+- **Java JDK version 11 or higher**
 
 ### Git
 
@@ -102,7 +155,7 @@ Note, January 3, 2022: these PowerShell scripts are currently being refined and 
 This project uses both the Apache Jena **riot** utility, and the Java **SDK**.
 
 - See https://jena.apache.org/
-- [RIOT](https://jena.apache.org/documentation/io/)
+- [RIOT (RDF I/O Technology)](https://jena.apache.org/documentation/io/)
 - https://jena.apache.org/tutorials/rdf_api.html
 - [JavaDocs](https://jena.apache.org/documentation/javadoc/arq/index.html)
 
