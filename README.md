@@ -51,6 +51,10 @@ A RDF to CosmosDB graph database migration process.
     - See https://github.com/cjoakim/azure-cosmosdb-gremlin-bulkloader
   - New Graph Bulk Executor .NET library
     - See https://docs.microsoft.com/en-us/azure/cosmos-db/graph/bulk-executor-graph-dotnet
+- **BYOD - Bring Your Own Data**
+  - This repo contains no RDF data files; bring your own
+  - Use environment variable AZURE_RDF2COSMOS_DATA_DIR to define where your RDF data resides
+  - See example directory structure below; it corresponds to the scripts in this repo
 
 ### Roadmap
 
