@@ -7,21 +7,21 @@
 
 ddir=$AZURE_RDF2COSMOS_DATA_DIR  # ddir is a shorthand abbreviation for AZURE_RDF2COSMOS_DATA_DIR
 
-# echo 'mcutsl'
-# riot --out nt $ddir/raw/december/gdata/mcutsl.ttl > $ddir/raw/december/gdata/mcutsl.nt
-# head -3 $ddir/raw/december/gdata/mcutsl.nt
+echo 'mcutsl'
+riot --out nt $ddir/raw/december/gdata/mcutsl.ttl > $ddir/raw/december/gdata/mcutsl.nt
+head -3 $ddir/raw/december/gdata/mcutsl.nt
 
-# echo 'cmt'
-# riot --out nt $ddir/raw/december/gdata/cmt.ttl > $ddir/raw/december/gdata/cmt.nt
-# head -3 $ddir/raw/december/gdata/cmt.nt
+echo 'cmt'
+riot --out nt $ddir/raw/december/gdata/cmt.ttl > $ddir/raw/december/gdata/cmt.nt
+head -3 $ddir/raw/december/gdata/cmt.nt
 
-# echo 'vamcu'
-# riot --out nt $ddir/raw/december/gdata/vamcu.ttl > $ddir/raw/december/gdata/vamcu.nt
-# head -3 $ddir/raw/december/gdata/vamcu.nt
+echo 'vamcu'
+riot --out nt $ddir/raw/december/gdata/vamcu.ttl > $ddir/raw/december/gdata/vamcu.nt
+head -3 $ddir/raw/december/gdata/vamcu.nt
 
-# echo 'slbp'
-# riot --syntax n3 --out nt $ddir/raw/december/gdata/slbp.rdf > $ddir/raw/december/gdata/slbp.nt
-# head -3 $ddir/raw/december/gdata/slbp.nt
+echo 'slbp'
+riot --syntax n3 --out nt $ddir/raw/december/gdata/slbp.rdf > $ddir/raw/december/gdata/slbp.nt
+head -3 $ddir/raw/december/gdata/slbp.nt
 
 echo 'mcma'
 riot --out nt $ddir/raw/december/gdata/mcma_v1.ttl > $ddir/raw/december/gdata/mcma.nt

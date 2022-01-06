@@ -151,6 +151,15 @@ public class Cache {
         return nodes;
     }
 
+    public long deleteAll() throws Exception {
+
+        String sql= "delete from node_cache where created_at > ? and created_at < ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setLong(1, Long.MIN_VALUE);
+        stmt.setLong(2, Long.MAX_VALUE);
+        return stmt.executeUpdate();
+    }
+
     public boolean reconnect() {
 
         log("Cache reconnect ...");
@@ -240,26 +249,28 @@ public class Cache {
         Cache c = new Cache();
         c.reconnect();
 
+        log("=== deleteAll, count: " + c.deleteAll());
+
+        GraphNode gn1 = new GraphNode(GraphNode.TYPE_VERTEX);
+        gn1.setVertexId1("miles_" + System.currentTimeMillis());
+        gn1.getCacheKey();
+        gn1.addProperty("color", "black");
+        gn1.addProperty("type", "tux");
+        log(gn1.toJson());
+
+        boolean b = c.keyExists(gn1.getCacheKey());
+        log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
+
+        c.persistGraphNode(gn1);
+
+        b = c.keyExists(gn1.getCacheKey());
+        log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
+
         log("=== getGraphNode");
-        long t1 = System.currentTimeMillis();
-        GraphNode gn0 = c.getGraphNode("key1");
-        long t2 = System.currentTimeMillis();
-        log(gn0.toJson());
-        log("elapsed: " + (t2 - t1));
+        GraphNode gn2 = c.getGraphNode(gn1.getCacheKey());
+        log(gn2.toJson());
 
-        GraphNode gn1a = new GraphNode(GraphNode.TYPE_VERTEX);
-        gn1a.setVertexId1("miles_" + System.currentTimeMillis());
-        gn1a.getCacheKey();
-        gn1a.addProperty("color", "black");
-        gn1a.addProperty("type", "tux");
-        log(gn1a.toJson());
-
-        log("=== insertGraphNode");
-        boolean i = c.insertGraphNode(gn1a);
-        log("insert count: " + i);
-
-        log("key exists xxxx: " + c.keyExists("xxxx"));
-        log("key exists key1: " + c.keyExists("key1"));
+        log("=== deleteAll, count: " + c.deleteAll());
 
         c.close();
     }

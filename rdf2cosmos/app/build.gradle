@@ -32,12 +32,14 @@ test {
     }
 }
 
+// $ gradle displayAppConfig
 task displayAppConfig(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.cjoakim.rdf2cosmos.App'
     args 'app_config'
 }
 
+// $ gradle checkCache
 task checkCache(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.cjoakim.rdf2cosmos.Cache'
