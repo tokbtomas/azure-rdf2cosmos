@@ -43,6 +43,10 @@ public class Cache {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             gn = mapper.readValue(data, GraphNode.class);
+            gn.setType(type);
+            gn.setCreatedAt(created_at);
+            gn.setUpdatedAt(updated_at);
+            gn.setConvertedAt(converted_at);
         }
         return gn;
     }
@@ -122,7 +126,7 @@ public class Cache {
         return (count > 0) ? true : false;
     }
 
-    public ArrayList<GraphNode> getUnconverted(ArrayList<String> keys) throws Exception {
+    public ArrayList<GraphNode> getUnconverted(int limit) throws Exception {
 
         ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
 
@@ -131,10 +135,9 @@ public class Cache {
         }
         String sql = "select type, data, created_at, updated_at, converted_at from node_cache where converted_at = 0 limit ?";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
-        stmt.setInt(1, 100);
+        stmt.setInt(1, limit);
 
         ResultSet resultSet = stmt.executeQuery();
-        GraphNode gn = null;
 
         while (resultSet.next()) {
             String type       = resultSet.getString("type");
@@ -143,9 +146,14 @@ public class Cache {
             long updated_at   = resultSet.getLong("updated_at");
             long converted_at = resultSet.getLong("converted_at");
 
+            GraphNode gn = null;
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             gn = mapper.readValue(data, GraphNode.class);
+            gn.setType(type);
+            gn.setCreatedAt(created_at);
+            gn.setUpdatedAt(updated_at);
+            gn.setConvertedAt(converted_at);
             nodes.add(gn);
         }
         return nodes;
@@ -261,7 +269,7 @@ public class Cache {
         boolean b = c.keyExists(gn1.getCacheKey());
         log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
 
-        c.persistGraphNode(gn1);
+        log("persist gn1: " + c.persistGraphNode(gn1));
 
         b = c.keyExists(gn1.getCacheKey());
         log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
@@ -269,6 +277,25 @@ public class Cache {
         log("=== getGraphNode");
         GraphNode gn2 = c.getGraphNode(gn1.getCacheKey());
         log(gn2.toJson());
+
+        gn2.addProperty("birth_date", "2017-12-28");
+        log("persist gn2: " + c.persistGraphNode(gn2));
+
+        log("=== getGraphNode");
+        GraphNode gn3 = c.getGraphNode(gn1.getCacheKey());
+        log(gn3.toJson());
+
+        ArrayList<GraphNode> nodes = c.getUnconverted(10);
+        log("=== getUnconverted, count: " + nodes.size());
+
+        for (int i = 0; i < nodes.size(); i++) {
+            GraphNode u = nodes.get(i);
+            log("=== setConverted, key: " + gn1.getCacheKey());
+            c.setConverted(u);
+        }
+
+        nodes = c.getUnconverted(10);
+        log("=== getUnconverted, count: " + nodes.size());
 
         log("=== deleteAll, count: " + c.deleteAll());
 

@@ -39,8 +39,8 @@ task displayAppConfig(type: JavaExec) {
     args 'app_config'
 }
 
-// $ gradle checkCache
-task checkCache(type: JavaExec) {
+// $ gradle testCache
+task testCache(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.cjoakim.rdf2cosmos.Cache'
     args 'x'
