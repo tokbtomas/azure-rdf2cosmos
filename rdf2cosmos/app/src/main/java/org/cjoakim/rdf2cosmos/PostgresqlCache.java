@@ -36,34 +36,42 @@ public class PostgresqlCache extends PersistentCache {
             GraphNode gn = memoryCache.get(key);
             persistGraphNode(gn);
         }
+        resetMemoryCache();
     }
 
     public GraphNode getGraphNode(String key) throws Exception {
 
-        if (!connected) {
-            reconnect();
+        GraphNode gn = memoryCache.get(key);  // first check the in-memory cache
+
+        if (gn != null) {
+            cacheHits++;
+            return gn;
         }
-        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where key = ? limit 1";
-        PreparedStatement stmt = pgConnection.prepareStatement(sql);
-        stmt.setString(1, key);
+        else {
+            if (!connected) {
+                reconnect();
+            }
+            String sql = "select type, data, created_at, updated_at, converted_at from node_cache where key = ? limit 1";
+            PreparedStatement stmt = pgConnection.prepareStatement(sql);
+            stmt.setString(1, key);
 
-        ResultSet resultSet = stmt.executeQuery();
-        GraphNode gn = null;
+            ResultSet resultSet = stmt.executeQuery();
 
-        while (resultSet.next()) {
-            String type       = resultSet.getString("type");
-            String data       = resultSet.getString("data");
-            long created_at   = resultSet.getLong("created_at");
-            long updated_at   = resultSet.getLong("updated_at");
-            long converted_at = resultSet.getLong("converted_at");
+            while (resultSet.next()) {
+                String type       = resultSet.getString("type");
+                String data       = resultSet.getString("data");
+                long created_at   = resultSet.getLong("created_at");
+                long updated_at   = resultSet.getLong("updated_at");
+                long converted_at = resultSet.getLong("converted_at");
 
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            gn = mapper.readValue(data, GraphNode.class);
-            gn.setType(type);
-            gn.setCreatedAt(created_at);
-            gn.setUpdatedAt(updated_at);
-            gn.setConvertedAt(converted_at);
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                gn = mapper.readValue(data, GraphNode.class);
+                gn.setType(type);
+                gn.setCreatedAt(created_at);
+                gn.setUpdatedAt(updated_at);
+                gn.setConvertedAt(converted_at);
+            }
         }
         return gn;
     }
@@ -126,54 +134,6 @@ public class PostgresqlCache extends PersistentCache {
         stmt.setLong(6, 0);
         int count = stmt.executeUpdate();
         return (count > 0) ? true : false;
-    }
-
-    public boolean setConverted(GraphNode gn) throws Exception {
-
-        long epoch = System.currentTimeMillis();
-        gn.setConvertedAt(epoch);
-
-        String sql= "update node_cache set updated_at = ?, converted_at = ? where key = ?";
-        PreparedStatement stmt = pgConnection.prepareStatement(sql);
-        stmt.setLong(1, epoch);
-        stmt.setLong(2, epoch);
-        stmt.setString(3, gn.getCacheKey());
-
-        int count = stmt.executeUpdate();
-        return (count > 0) ? true : false;
-    }
-
-    public ArrayList<GraphNode> getUnconverted(int limit) throws Exception {
-
-        ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
-
-        if (!connected) {
-            reconnect();
-        }
-        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where converted_at = 0 limit ?";
-        PreparedStatement stmt = pgConnection.prepareStatement(sql);
-        stmt.setInt(1, limit);
-
-        ResultSet resultSet = stmt.executeQuery();
-
-        while (resultSet.next()) {
-            String type       = resultSet.getString("type");
-            String data       = resultSet.getString("data");
-            long created_at   = resultSet.getLong("created_at");
-            long updated_at   = resultSet.getLong("updated_at");
-            long converted_at = resultSet.getLong("converted_at");
-
-            GraphNode gn = null;
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            gn = mapper.readValue(data, GraphNode.class);
-            gn.setType(type);
-            gn.setCreatedAt(created_at);
-            gn.setUpdatedAt(updated_at);
-            gn.setConvertedAt(converted_at);
-            nodes.add(gn);
-        }
-        return nodes;
     }
 
     public long deleteAll() throws Exception {
@@ -298,18 +258,6 @@ public class PostgresqlCache extends PersistentCache {
         System.out.println("=== getGraphNode");
         GraphNode gn3 = c.getGraphNode(gn1.getCacheKey());
         System.out.println(gn3.toJson());
-
-        ArrayList<GraphNode> nodes = c.getUnconverted(10);
-        System.out.println("=== getUnconverted, count: " + nodes.size());
-
-        for (int i = 0; i < nodes.size(); i++) {
-            GraphNode u = nodes.get(i);
-            System.out.println("=== setConverted, key: " + gn1.getCacheKey());
-            c.setConverted(u);
-        }
-
-        nodes = c.getUnconverted(10);
-        System.out.println("=== getUnconverted, count: " + nodes.size());
 
         System.out.println("=== deleteAll, count: " + c.deleteAll());
 

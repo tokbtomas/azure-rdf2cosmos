@@ -45,6 +45,8 @@ public abstract class PersistentCache {
 
     public abstract boolean reconnect();
 
+    public abstract long deleteAll() throws Exception;
+
     public abstract void close();
 
     public void putGraphNode(String key, GraphNode gn) throws Exception {
@@ -61,7 +63,7 @@ public abstract class PersistentCache {
         }
     }
 
-    private void resetMemoryCache() {
+    protected void resetMemoryCache() {
 
         memoryCache = new HashMap<String, GraphNode>();
     }

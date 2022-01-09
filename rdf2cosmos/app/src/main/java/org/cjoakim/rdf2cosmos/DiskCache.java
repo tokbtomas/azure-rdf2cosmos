@@ -41,6 +41,7 @@ public class DiskCache extends PersistentCache {
             GraphNode gn = memoryCache.get(key);
             persistGraphNode(gn);
         }
+        resetMemoryCache();
     }
 
     public GraphNode getGraphNode(String key) {
@@ -82,12 +83,29 @@ public class DiskCache extends PersistentCache {
         }
         return gn;
     }
-    
+
     public boolean persistGraphNode(GraphNode gn) throws Exception {
 
         String outfile = AppConfig.getCacheFilename(gn.getCacheKey());
         writeJsonObject(gn, outfile, false);
         return true;
+    }
+
+    public  long deleteAll() throws Exception {
+
+        File cacheDirectory = new File(AppConfig.getCacheDirectory());
+        String[] fileTypes  = new String[] {"json"};
+
+        Collection<File> files = FileUtils.listFiles(cacheDirectory, fileTypes, false);
+        Iterator<File> it = files.iterator();
+        long count = 0;
+        while(it.hasNext()) {
+            File f = it.next();
+            log("deleting file " + f.getAbsolutePath());
+            FileUtils.delete(f);
+            count++;
+        }
+        return count;
     }
 
     public boolean reconnect() {
