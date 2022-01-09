@@ -82,11 +82,15 @@ public class AppRdfStream extends StreamRDFWrapper {
         String outfile = AppConfig.getMetaFilename("edge_labels_map.json");
         writeJsonObject(edgeLabelsMap, outfile);
 
-        persistentCache.flushMemoryCache();
-
-        log("AppRdfStream_finish tripleHandledCount:   " + tripleHandledCount);
-        log("AppRdfStream_finish tripleUnhandledCount: " + tripleUnhandledCount);
-        persistentCache.eojLogging();
+        try {
+            persistentCache.flushMemoryCache();
+            log("AppRdfStream_finish tripleHandledCount:   " + tripleHandledCount);
+            log("AppRdfStream_finish tripleUnhandledCount: " + tripleUnhandledCount);
+            persistentCache.eojLogging();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

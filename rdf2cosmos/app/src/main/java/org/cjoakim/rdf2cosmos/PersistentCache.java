@@ -8,7 +8,6 @@ import org.apache.commons.io.FileUtils;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -27,43 +26,45 @@ public abstract class PersistentCache {
     protected long cacheFileAbsent = 0;
     protected long cacheRepopulate = 0;
     protected long cacheExceptions = 0;
+    protected int maxObjectCacheCount = 1000;
 
     public PersistentCache() {
 
         super();
+        maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
         resetMemoryCache();
     }
 
-    public boolean keyIsInMemory(String key) {
+    // Subclasses must implement these abstract methods:
 
-        return memoryCache.containsKey(key);
-    }
-
-    private void resetMemoryCache() {
-
-        memoryCache = new HashMap<String, GraphNode>();
-    }
-
-    public abstract void flushMemoryCache();
+    public abstract void flushMemoryCache() throws Exception;
 
     public abstract GraphNode getGraphNode(String key) throws Exception;
+
+    public abstract boolean persistGraphNode(GraphNode gn) throws Exception;
+
+    public abstract boolean reconnect();
+
+    public abstract void close();
 
     public void putGraphNode(String key, GraphNode gn) throws Exception {
 
         if (key != null) {
             if (gn != null) {
                 memoryCache.put(key, gn);
+
+                if (memoryCache.size() > maxObjectCacheCount) {
+                    flushMemoryCache();
+                    resetMemoryCache();
+                }
             }
         }
     }
 
-    public abstract boolean persistGraphNode(GraphNode gn) throws Exception;
+    private void resetMemoryCache() {
 
-    public abstract long deleteAll() throws Exception;
-
-    public abstract boolean reconnect();
-
-    public abstract void close();
+        memoryCache = new HashMap<String, GraphNode>();
+    }
 
     protected void writeJsonObject(Object obj, String outfile, boolean pretty) {
 

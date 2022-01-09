@@ -28,14 +28,13 @@ public class PostgresqlCache extends PersistentCache {
         connected = connect();
     }
 
-    public void flushMemoryCache() {
+    public void flushMemoryCache() throws Exception {
 
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
             GraphNode gn = memoryCache.get(key);
-
-            // TODO - implement
+            persistGraphNode(gn);
         }
     }
 
@@ -74,7 +73,7 @@ public class PostgresqlCache extends PersistentCache {
         if (gn == null) {
             return false;
         }
-        if (keyExists(gn.getCacheKey())) {
+        if (isKeyPersisted(gn.getCacheKey())) {
             return updateGraphNode(gn);
         }
         else {
@@ -82,7 +81,7 @@ public class PostgresqlCache extends PersistentCache {
         }
     }
 
-    public boolean keyExists(String key) throws Exception {
+    public boolean isKeyPersisted(String key) throws Exception {
 
         String sql = "select count(key) from node_cache where key = ?";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
@@ -281,12 +280,12 @@ public class PostgresqlCache extends PersistentCache {
         gn1.addProperty("type", "tux");
         System.out.println(gn1.toJson());
 
-        boolean b = c.keyExists(gn1.getCacheKey());
+        boolean b = c.isKeyPersisted(gn1.getCacheKey());
         System.out.println("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
 
         System.out.println("persist gn1: " + c.persistGraphNode(gn1));
 
-        b = c.keyExists(gn1.getCacheKey());
+        b = c.isKeyPersisted(gn1.getCacheKey());
         System.out.println("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
 
         System.out.println("=== getGraphNode");

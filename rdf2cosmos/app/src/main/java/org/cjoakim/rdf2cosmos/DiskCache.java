@@ -33,14 +33,13 @@ public class DiskCache extends PersistentCache {
         super();
     }
 
-    public void flushMemoryCache() {
+    public void flushMemoryCache() throws Exception {
 
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
             GraphNode gn = memoryCache.get(key);
-            String outfile = AppConfig.getCacheFilename(gn.getCacheKey());
-            writeJsonObject(gn, outfile, false);
+            persistGraphNode(gn);
         }
     }
 
@@ -83,41 +82,12 @@ public class DiskCache extends PersistentCache {
         }
         return gn;
     }
-
-
+    
     public boolean persistGraphNode(GraphNode gn) throws Exception {
 
-        return false;
-    }
-
-    public boolean keyExists(String key) throws Exception {
-
-        return false;
-    }
-
-    public boolean updateGraphNode(GraphNode gn) throws Exception { 
-
-        return false;
-    }
-
-    public boolean insertGraphNode(GraphNode gn) throws Exception {
-
-        return false;
-    }
-
-    public boolean setConverted(GraphNode gn) throws Exception {
-
-        return false;
-    }
-
-    public ArrayList<GraphNode> getUnconverted(int limit) throws Exception {
-
-        return null;  // subclasses should override
-    }
-
-    public long deleteAll() throws Exception {
-
-        return 0;
+        String outfile = AppConfig.getCacheFilename(gn.getCacheKey());
+        writeJsonObject(gn, outfile, false);
+        return true;
     }
 
     public boolean reconnect() {
