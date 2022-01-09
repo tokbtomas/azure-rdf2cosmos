@@ -7,7 +7,14 @@ import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 import java.sql.*;
 import java.util.*;
 
-public class PostgresqlCache {
+/**
+ * Concrete subclass of class Cache, implemented with Azure PostgreSQL
+ * as the persistence mechanism.
+ * 
+ * Chris Joakim, Microsoft, January 2022
+ */
+
+public class PostgresqlCache extends Cache {
 
     // Instance variables:
     private Connection pgConnection;
