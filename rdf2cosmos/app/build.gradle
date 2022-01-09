@@ -39,7 +39,7 @@ task displayAppConfig(type: JavaExec) {
     args 'app_config'
 }
 
-// $ gradle PostgresqlCache
+// $ gradle testPostgresqlCache
 task testPostgresqlCache(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.cjoakim.rdf2cosmos.PostgresqlCache'

@@ -22,8 +22,9 @@ import java.util.HashMap;
  *
  * The primary event handled by this stream class is "triple(...)", "start()" and "finish()".
  * The Triples are received, processed into "GraphNode" objects, and accumulated/aggregated
- * an instance of class Accumulator.  The GraphNode objects in cache are flushed to disk
- * at EOJ, and Gremlin/Groovy syntax can be created from these for loading into CosmosDB.
+ * an instance of class PersistentCache (DiskCache or PostgresqlCache).  The GraphNode objects
+ * in cache are flushed to disk or database at EOJ, and Gremlin/Groovy syntax can be created from
+ * these for loading into CosmosDB.
  *
  * Chris Joakim, Microsoft, January 2022
  */
@@ -45,7 +46,7 @@ public class AppRdfStream extends StreamRDFWrapper {
     AppRdfStream(StreamRDF dest) {
 
         super(dest);
-        this.startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         prefixMap = new HashMap<String, String>();
         edgeLabelsMap = new HashMap<String, String>();
         maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
@@ -58,16 +59,6 @@ public class AppRdfStream extends StreamRDFWrapper {
             persistentCache = new DiskCache();
         }
         log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount);
-    }
-
-    public PersistentCache getPersistentCache() {
-
-        return persistentCache;
-    }
-
-    public void setPersistentCache(PersistentCache persistentCache) {
-
-        this.persistentCache = persistentCache;
     }
 
     public int getTripleCount() {
@@ -84,18 +75,18 @@ public class AppRdfStream extends StreamRDFWrapper {
     @Override
     public void finish() {
 
-        this.finishTime = System.currentTimeMillis();
-        double elapsed = (this.finishTime - this.startTime) / 1000.0;
+        finishTime = System.currentTimeMillis();
+        double elapsed = (finishTime - startTime) / 1000.0;
         log("AppRdfStream_finish in " + elapsed + " seconds, tripleCount: " + tripleCount);
 
         String outfile = AppConfig.getMetaFilename("edge_labels_map.json");
-        writeJsonObject(this.edgeLabelsMap, outfile);
+        writeJsonObject(edgeLabelsMap, outfile);
 
-        this.persistentCache.flushMemoryCache();
+        persistentCache.flushMemoryCache();
 
         log("AppRdfStream_finish tripleHandledCount:   " + tripleHandledCount);
         log("AppRdfStream_finish tripleUnhandledCount: " + tripleUnhandledCount);
-        this.persistentCache.eojLogging();
+        persistentCache.eojLogging();
     }
 
     @Override
@@ -113,7 +104,7 @@ public class AppRdfStream extends StreamRDFWrapper {
     @Override
     public void quad(Quad quad) {
 
-        log("AppRdfStream_quad | " + quad );
+        log("AppRdfStream_quad | " + quad );  // this event isn't expected or handled
     }
 
     @Override
@@ -123,7 +114,7 @@ public class AppRdfStream extends StreamRDFWrapper {
         tripleCount++;
         if (tripleCount == 1) {
             String outfile = AppConfig.getMetaFilename("prefix_map.json");
-            writeJsonObject(this.prefixMap, outfile);
+            writeJsonObject(prefixMap, outfile);
         }
 
         try {
@@ -149,25 +140,25 @@ public class AppRdfStream extends StreamRDFWrapper {
                     String label     = edgeLabel(p.toString());
                     edgeLabelsMap.put(label, p.toString());
                     String key = GraphNode.edgeCacheKey(vertexId1, vertexId2, label);
-                    gn = this.persistentCache.getGraphNode(key);
+                    gn = persistentCache.getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_EDGE);
                         gn.setVertexId1(vertexId1);
                         gn.setVertexId2(vertexId2);
                         gn.setLabel(label);
-                        this.persistentCache.putGraphNode(key, gn);
+                        persistentCache.putGraphNode(key, gn);
                     }
                     tripleHandled = true;
                 }
                 else {
                     // this triple is a Vertex or Vertex Property
                     String key = GraphNode.vertexCacheKey(vertexId1);
-                    gn = this.persistentCache.getGraphNode(key);
+                    gn = persistentCache.getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_VERTEX);
                         gn.setVertexId1(vertexId1);
                         gn.setLabel(resourceLabel);
-                        this.persistentCache.putGraphNode(vertexId1, gn);
+                        persistentCache.putGraphNode(vertexId1, gn);
                     }
 
                     if (o.isLiteral()) {
@@ -196,7 +187,6 @@ public class AppRdfStream extends StreamRDFWrapper {
             else {
                 tripleUnhandledCount++;
             }
-            persistentCache.flushMemoryCache();
         }
         catch (Exception e) {
             log("Exception on triple " + getTripleCount() + ": " + triple);

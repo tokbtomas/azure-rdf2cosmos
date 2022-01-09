@@ -34,7 +34,7 @@ public abstract class PersistentCache {
         resetMemoryCache();
     }
 
-    public boolean containsKey(String key) {
+    public boolean keyIsInMemory(String key) {
 
         return memoryCache.containsKey(key);
     }
@@ -46,11 +46,7 @@ public abstract class PersistentCache {
 
     public abstract void flushMemoryCache();
 
-
-    public GraphNode getGraphNode(String key) throws Exception {
-
-        return null;
-    }
+    public abstract GraphNode getGraphNode(String key) throws Exception;
 
     public void putGraphNode(String key, GraphNode gn) throws Exception {
 
@@ -61,50 +57,13 @@ public abstract class PersistentCache {
         }
     }
 
-    public boolean persistGraphNode(GraphNode gn) throws Exception {
+    public abstract boolean persistGraphNode(GraphNode gn) throws Exception;
 
-        return false;
-    }
+    public abstract long deleteAll() throws Exception;
 
-    public boolean keyExists(String key) throws Exception {
+    public abstract boolean reconnect();
 
-        return false;
-    }
-
-    public boolean updateGraphNode(GraphNode gn) throws Exception { 
-
-        return false;
-    }
-
-    public boolean insertGraphNode(GraphNode gn) throws Exception {
-
-        return false;
-    }
-
-    public boolean setConverted(GraphNode gn) throws Exception {
-
-        return false;
-    }
-
-    public ArrayList<GraphNode> getUnconverted(int limit) throws Exception {
-
-        return null;  // subclasses should override
-    }
-
-    public long deleteAll() throws Exception {
-
-        return 0;
-    }
-
-    public boolean reconnect() {
-
-        return true;
-    }
-
-    public void close() {
-
-        return;
-    }
+    public abstract void close();
 
     protected void writeJsonObject(Object obj, String outfile, boolean pretty) {
 
