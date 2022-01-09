@@ -36,68 +36,39 @@ public class Accumulator {
 
     // Instance variables:
     private HashMap<String, GraphNode> cache = null;
-    private long cacheHits = 0;
-    private long cacheMisses = 0;
-    private long cacheFileExists = 0;
-    private long cacheFileAbsent = 0;
-    private long cacheRepopulate = 0;
-    private long cacheExceptions = 0;
+    private PersistentCache persistentCache = null;
 
     public Accumulator() {
 
         super();
-        resetCache();
-    }
 
-    public boolean containsKey(String key) {
-
-        return cache.containsKey(key);
-    }
-
-    public GraphNode getGraphNode(String key) {
-
-        GraphNode gn = cache.get(key);  // first check the in-memory cache
-
-        if (gn != null) {
-            cacheHits ++;
+        if (AppConfig.isAzurePostgresqlCacheType()) {
+            persistentCache = new PostgresqlCache();
         }
         else {
-            // check disk-cache if not in memory
-            cacheMisses++;
-            String filename = AppConfig.getCacheFilename(key);
-            try {
-                log("cache_reading_file: " + filename);
-                File file = new File(filename);
-                if (file.exists()) {
-                    cacheFileExists++;
-                    String jstr = FileUtils.readFileToString(file, "UTF-8");
-                    //log("jstr: " + jstr);
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                    gn = mapper.readValue(jstr, GraphNode.class);
-                    if (gn != null) {
-                        log("cache_key_repopulated: " + key);
-                        cache.put(key, gn);
-                        cacheRepopulate++;
-                    }
-                }
-                else {
-                    cacheFileAbsent++;
-                }
-            }
-            catch (IOException e) {
-                cacheExceptions++;
-                log("ERROR on_disk_cache_file: " + filename + " " + e.getMessage());
-                e.printStackTrace();
-            }
+            persistentCache = new DiskCache();
         }
-        return gn;
     }
 
-    public void putGraphNode(String key, GraphNode gn) {
+    public PersistentCache getPersistentCache() {
 
-        this.cache.put(key, gn);
+        return persistentCache;
     }
+
+    public void setPersistentCache(PersistentCache persistentCache) {
+
+        this.persistentCache = persistentCache;
+    }
+
+    //    public boolean containsKey(String key) {
+//
+//        return cache.containsKey(key);
+//    }
+
+//    public void putGraphNode(String key, GraphNode gn) {
+//
+//        this.cache.put(key, gn);
+//    }
 
     /**
      * Flush the cache to the sink (i.e. - disk) if the cache size is greater
@@ -105,65 +76,62 @@ public class Accumulator {
      */
     public synchronized void flushCache(int maxItemCount) {
 
-        if (cache.size() > maxItemCount) {
-            log("flushCache size: " + cache.size() + " max: " + maxItemCount);
-            flushCacheToDisk();  // disk is the only sink at this time. add blob storage, etc., later if needed
-        }
+        persistentCache.flushMemoryCache(maxItemCount);
+
+//        if (cache.size() > maxItemCount) {
+//            log("flushCache size: " + cache.size() + " max: " + maxItemCount);
+//            flushCacheToDisk();  // disk is the only sink at this time. add blob storage, etc., later if needed
+//        }
     }
 
-    /**
-     * Write the cache entries to JSON files on disk.
-     * Current impl simply writes to one JSON file.
-     */
-    private void flushCacheToDisk() {
+//    /**
+//     * Write the cache entries to JSON files on disk.
+//     * Current impl simply writes to one JSON file.
+//     */
+//    private void flushCacheToDisk() {
+//
+//        log("flushCacheToDisk");
+//        Iterator<String> it = cache.keySet().iterator();
+//        while (it.hasNext()) {
+//            String key = it.next();
+//            GraphNode gn = cache.get(key);
+//            String outfile = AppConfig.getCacheFilename(gn.getCacheKey());
+//            writeJsonObject(gn, outfile, false);
+//        }
+//        resetCache();
+//        return;
+//    }
 
-        log("flushCacheToDisk");
-        Iterator<String> it = cache.keySet().iterator();
-        while (it.hasNext()) {
-            String key = it.next();
-            GraphNode gn = cache.get(key);
-            String outfile = AppConfig.getCacheFilename(gn.getCacheKey());
-            writeJsonObject(gn, outfile, false);
-        }
-        resetCache();
-        return;
-    }
-
-    private void resetCache() {
-
-        cache = new HashMap<String, GraphNode>();
-    }
-
-    protected void writeJsonObject(Object obj, String outfile, boolean pretty) {
-
-        try {
-            ObjectMapper mapper = null;
-            if (pretty) {
-                mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-            }
-            else {
-                mapper = new ObjectMapper();
-            }
-            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-            mapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
-            mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-            String json = mapper.writeValueAsString(obj);
-            FileUtils.write(new File(outfile), json);
-            log("file written: " + outfile);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    protected void writeJsonObject(Object obj, String outfile, boolean pretty) {
+//
+//        try {
+//            ObjectMapper mapper = null;
+//            if (pretty) {
+//                mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+//            }
+//            else {
+//                mapper = new ObjectMapper();
+//            }
+//            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+//            mapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
+//            mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
+//            String json = mapper.writeValueAsString(obj);
+//            FileUtils.write(new File(outfile), json);
+//            log("file written: " + outfile);
+//        }
+//        catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public void eojLogging() {
 
-        log("Accumulator_eoj cache_hits:        " + cacheHits);
-        log("Accumulator_eoj cache_misses:      " + cacheMisses);
-        log("Accumulator_eoj cache_file_exists: " + cacheFileExists);
-        log("Accumulator_eoj cache_file_absent: " + cacheFileAbsent);
-        log("Accumulator_eoj cache_repopulated: " + cacheRepopulate);
-        log("Accumulator_eoj cache_exceptions:  " + cacheExceptions);
+        log("Accumulator_eoj cache_hits:        " + persistentCache.cacheHits);
+        log("Accumulator_eoj cache_misses:      " + persistentCache.cacheMisses);
+        log("Accumulator_eoj cache_file_exists: " + persistentCache.cacheFileExists);
+        log("Accumulator_eoj cache_file_absent: " + persistentCache.cacheFileAbsent);
+        log("Accumulator_eoj cache_repopulated: " + persistentCache.cacheRepopulate);
+        log("Accumulator_eoj cache_exceptions:  " + persistentCache.cacheExceptions);
     }
     
     private void log(String msg) {

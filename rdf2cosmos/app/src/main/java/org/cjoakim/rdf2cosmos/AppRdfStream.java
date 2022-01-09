@@ -142,25 +142,25 @@ public class AppRdfStream extends StreamRDFWrapper {
                     String label     = edgeLabel(p.toString());
                     edgeLabelsMap.put(label, p.toString());
                     String key = GraphNode.edgeCacheKey(vertexId1, vertexId2, label);
-                    gn = this.accumulator.getGraphNode(key);
+                    gn = this.accumulator.getPersistentCache().getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_EDGE);
                         gn.setVertexId1(vertexId1);
                         gn.setVertexId2(vertexId2);
                         gn.setLabel(label);
-                        this.accumulator.putGraphNode(key, gn);
+                        this.accumulator.getPersistentCache().putGraphNode(key, gn);
                     }
                     tripleHandled = true;
                 }
                 else {
                     // this triple is a Vertex or Vertex Property
                     String key = GraphNode.vertexCacheKey(vertexId1);
-                    gn = this.accumulator.getGraphNode(key);
+                    gn = this.accumulator.getPersistentCache().getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_VERTEX);
                         gn.setVertexId1(vertexId1);
                         gn.setLabel(resourceLabel);
-                        this.accumulator.putGraphNode(vertexId1, gn);
+                        this.accumulator.getPersistentCache().putGraphNode(vertexId1, gn);
                     }
 
                     if (o.isLiteral()) {

@@ -14,7 +14,7 @@ import java.util.*;
  * Chris Joakim, Microsoft, January 2022
  */
 
-public class PostgresqlCache extends Cache {
+public class PostgresqlCache extends PersistentCache {
 
     // Instance variables:
     private Connection pgConnection;
@@ -24,6 +24,17 @@ public class PostgresqlCache extends Cache {
 
         super();
         connected = connect();
+    }
+
+    public void flushMemoryCache(int maxItemCount) {
+
+        Iterator<String> it = memoryCache.keySet().iterator();
+        while (it.hasNext()) {
+            String key = it.next();
+            GraphNode gn = memoryCache.get(key);
+
+            // TODO - implement
+        }
     }
 
     public GraphNode getGraphNode(String key) throws Exception {
@@ -244,12 +255,9 @@ public class PostgresqlCache extends Cache {
         }
     }
 
-    private static void logException(String msg, Exception e) {
 
-        log("Cache EXCEPTION: " + msg + " class: " + e.getClass().getCanonicalName() + " msg: " + e.getMessage());
-    }
 
-    private static void log(String msg) {
+    private static void loghh(String msg) {
 
         System.out.println(msg);
     }
@@ -262,47 +270,47 @@ public class PostgresqlCache extends Cache {
         PostgresqlCache c = new PostgresqlCache();
         c.reconnect();
 
-        log("=== deleteAll, count: " + c.deleteAll());
+        System.out.println("=== deleteAll, count: " + c.deleteAll());
 
         GraphNode gn1 = new GraphNode(GraphNode.TYPE_VERTEX);
         gn1.setVertexId1("miles_" + System.currentTimeMillis());
         gn1.getCacheKey();
         gn1.addProperty("color", "black");
         gn1.addProperty("type", "tux");
-        log(gn1.toJson());
+        System.out.println(gn1.toJson());
 
         boolean b = c.keyExists(gn1.getCacheKey());
-        log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
+        System.out.println("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
 
-        log("persist gn1: " + c.persistGraphNode(gn1));
+        System.out.println("persist gn1: " + c.persistGraphNode(gn1));
 
         b = c.keyExists(gn1.getCacheKey());
-        log("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
+        System.out.println("=== keyExists: " + gn1.getCacheKey() + " -> " + b);
 
-        log("=== getGraphNode");
+        System.out.println("=== getGraphNode");
         GraphNode gn2 = c.getGraphNode(gn1.getCacheKey());
-        log(gn2.toJson());
+        System.out.println(gn2.toJson());
 
         gn2.addProperty("birth_date", "2017-12-28");
-        log("persist gn2: " + c.persistGraphNode(gn2));
+        System.out.println("persist gn2: " + c.persistGraphNode(gn2));
 
-        log("=== getGraphNode");
+        System.out.println("=== getGraphNode");
         GraphNode gn3 = c.getGraphNode(gn1.getCacheKey());
-        log(gn3.toJson());
+        System.out.println(gn3.toJson());
 
         ArrayList<GraphNode> nodes = c.getUnconverted(10);
-        log("=== getUnconverted, count: " + nodes.size());
+        System.out.println("=== getUnconverted, count: " + nodes.size());
 
         for (int i = 0; i < nodes.size(); i++) {
             GraphNode u = nodes.get(i);
-            log("=== setConverted, key: " + gn1.getCacheKey());
+            System.out.println("=== setConverted, key: " + gn1.getCacheKey());
             c.setConverted(u);
         }
 
         nodes = c.getUnconverted(10);
-        log("=== getUnconverted, count: " + nodes.size());
+        System.out.println("=== getUnconverted, count: " + nodes.size());
 
-        log("=== deleteAll, count: " + c.deleteAll());
+        System.out.println("=== deleteAll, count: " + c.deleteAll());
 
         c.close();
     }
