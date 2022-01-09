@@ -14,8 +14,17 @@ public class AppConfig {
 
     // Constants, environment variable names:
     public static final String AZURE_RDF2COSMOS_DATA_DIR            = "AZURE_RDF2COSMOS_DATA_DIR";
+    public static final String AZURE_RDF2COSMOS_CACHE_TYPE          = "AZURE_RDF2COSMOS_CACHE_TYPE";  // local-disk or az-postgresql
     public static final String AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT = "AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT";
-    public static final int    DEFAULT_MAX_OBJ_CACHE_COUNT          = 1000;
+
+    public static final String AZURE_PG_SERVER                      = "AZURE_PG_SERVER";
+    public static final String AZURE_PG_DATABASE                    = "AZURE_PG_DATABASE";
+    public static final String AZURE_PG_USER                        = "AZURE_PG_USER";
+    public static final String AZURE_PG_PASS                        = "AZURE_PG_PASS";
+
+    public static final String CACHE_TYPE_LOCAL_DISK          = "local-disk";
+    public static final String CACHE_TYPE_AZURE_POSTGRESQL    = "az-postgresql";
+    public static final int    DEFAULT_MAX_OBJ_CACHE_COUNT    = 1000;
 
     // Class variables:
     private static String[] commandLineArgs = new String[0];
@@ -66,6 +75,48 @@ public class AppConfig {
     public static String getDataDirectory() {
 
         return getEnvVar(AZURE_RDF2COSMOS_DATA_DIR);
+    }
+
+    public static String getCacheType() {
+
+        return getEnvVar(AZURE_RDF2COSMOS_CACHE_TYPE);
+    }
+
+    public static boolean isAzurePostgresqlCacheType() {
+
+        String type = getCacheType();
+        if (type == null) {
+            return false;
+        }
+        return type.equalsIgnoreCase(CACHE_TYPE_AZURE_POSTGRESQL);
+    }
+
+    public static boolean isLocalDiskCacheType() {
+
+        if (isAzurePostgresqlCacheType()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static String getAzurePostgresqlServer() {
+
+        return getEnvVar(AZURE_PG_SERVER);
+    }
+
+    public static String getAzurePostgresqlDatabase() {
+
+        return getEnvVar(AZURE_PG_DATABASE);
+    }
+
+    public static String getAzurePostgresqlUser() {
+
+        return getEnvVar(AZURE_PG_USER);
+    }
+
+    public static String getAzurePostgresqlPassword() {
+
+        return getEnvVar(AZURE_PG_PASS);
     }
 
     public static int getMaxObjectCacheCount() {

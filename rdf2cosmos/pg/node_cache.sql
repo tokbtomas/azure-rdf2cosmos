@@ -9,12 +9,12 @@ CREATE TABLE "node_cache" (
 	"converted_at" bigint default 0
 );
 
-insert into node_cache values (
-	'key1', 
-	'vertex', 
-	'{"properties":{"cat":{"name":"cat","value":"Elsa","dataType":"string"}},"type":"vertex","vertexId1":"abc","vertexId2":null}',
-	 0, 0, 0);
+-- insert into node_cache values (
+-- 	'key1', 
+-- 	'vertex', 
+-- 	'{"properties":{"cat":{"name":"cat","value":"Elsa","dataType":"string"}},"type":"vertex","vertexId1":"abc","vertexId2":null}',
+-- 	 0, 0, 0);
 
-select count(*) from node_cache;
+-- select count(*) from node_cache;
 
-select * from node_cache;
+-- select * from node_cache;

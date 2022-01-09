@@ -177,8 +177,19 @@ This project uses both the Apache Jena **riot** utility, and the Java **SDK**.
 The following environment variables need to be set on the system that executes this process.
 
 ```
-AZURE_RDF2COSMOS_DATA_DIR
-AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT    
+AZURE_RDF2COSMOS_DATA_DIR               <-- you must specify this value, a directory on host computer
+AZURE_RDF2COSMOS_CACHE_TYPE             <-- local-disk (default) or az-postgresql
+AZURE_RDF2COSMOS_MAX_OBJ_CACHE_COUNT    <-- default is 1000 GraphNode objects in JVM memory
+```
+
+If you set **AZURE_RDF2COSMOS_CACHE_TYPE** to **xxx**, then you must also set these four
+additional environment variables.  See the **Azure PostgreSQL Cache** section below.
+
+```
+AZURE_PG_SERVER
+AZURE_PG_DATABASE
+AZURE_PG_USER
+AZURE_PG_PASS
 ```
 
 The **AZURE_RDF2COSMOS_DATA_DIR** defines the location of the root data directory in the project.
@@ -215,6 +226,101 @@ See the documentation at https://docs.microsoft.com/en-us/azure/cosmos-db/graph/
 
 ---
 
+## Azure PostgreSQL Cache
+
+Provision an instance of the **Azure PostgreSQL** relational database PaaS service.
+
+Within that (server) account create a database of any name, such as **dev**.
+Within that database use the following DDL to create the **node_cache** table
+using the contents of file **rdf2cosmos/pg/node_cache.sql** in this repo; listed below:
+
+```
+drop table if exists node_cache;
+
+CREATE TABLE "node_cache" (
+	"key"          character varying(255) unique not null,
+	"type"         character varying(8) not null,
+	"data"         character varying(8000) unique not null,
+	"created_at"   bigint default 0,
+	"updated_at"   bigint default 0,
+	"converted_at" bigint default 0
+);
+```
+
+This table is used as the cache in steps 2 and 3 of the migration process.
+
+Be sure to set the environment variables listed above, based on how you provisioned
+your Azure PostgreSQL account:
+
+```
+AZURE_RDF2COSMOS_CACHE_TYPE="az-postgresql"
+
+AZURE_PG_DATABASE="dev"  <-- or use another valid name of your choosing instead of "dev"
+
+AZURE_PG_SERVER          <-- value per how you provisioned the account in Azure Portal
+AZURE_PG_USER            <-- value per how you provisioned the account in Azure Portal
+AZURE_PG_PASS            <-- value per how you provisioned the account in Azure Portal
+```
+
+A great free tool that you can use to do this is **Azure Data Studio (ADS)**.
+It runs on Windows, Linux, or macOS.  See the following links for ADS.
+
+- https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15
+- https://docs.microsoft.com/en-us/sql/azure-data-studio/quickstart-postgres?view=sql-server-ver15
+
+The following screen shot shows the execution of this DDL in Azure Data Studio:
+
+<p align="center"><img src="img/azure-data-studio-screen-shot.png" width="100%"></p>
+
+### Verification Testing
+
+Before you execute the actual rdf2cosmos migration process with this database as the cache,
+you should execute a verification test to ensure that your system is configured properly.
+
+The **gradle testCache** can be executed from the command line (in the same directory as build.sh)
+to test your remote Azure PostgreSQL Cache.  It should generate output similar to the following:
+
+```
+$ gradle testCache
+
+> Task :app:testCache
+url:       jdbc:postgresql://cjoakimpostgresqlsrv1.postgres.database.azure.com:5432/dev?ssl=true&sslmode=require
+user:      cjoakim@cjoakimpostgresqlsrv1
+pw length: 12
+Database connection obtained in 1287 ms
+Cache reconnect ...
+Cache close ...
+Cache connection closed
+url:       jdbc:postgresql://cjoakimpostgresqlsrv1.postgres.database.azure.com:5432/dev?ssl=true&sslmode=require
+user:      cjoakim@cjoakimpostgresqlsrv1
+pw length: 12
+Database connection obtained in 709 ms
+=== deleteAll, count: 0
+{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":0,"updatedAt":0,"convertedAt":0}
+=== keyExists: vertex__miles_1641734425182 -> false
+persist gn1: true
+=== keyExists: vertex__miles_1641734425182 -> true
+=== getGraphNode
+{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641734425420,"updatedAt":1641734425420,"convertedAt":0}
+persist gn2: true
+=== getGraphNode
+{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"birth_date":{"name":"birth_date","value":"2017-12-28","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641734425420,"updatedAt":1641734425624,"convertedAt":0}
+=== getUnconverted, count: 1
+=== setConverted, key: vertex__miles_1641734425182
+=== getUnconverted, count: 0
+=== deleteAll, count: 1
+Cache close ...
+Cache connection closed
+
+BUILD SUCCESSFUL in 3s
+3 actionable tasks: 1 executed, 2 up-to-date
+```
+
+The above output shows the functionality of the cache being invoked.
+See the **main()** method of class **org.cjoakim.rdf2cosmos.Cache** where this ad-hoc test is implemented.
+
+---
+
 ## Quick Start Instructions
 
 - Create your Azure CosmosDB/Gremlin account in Azure Portal
@@ -227,6 +333,14 @@ See the documentation at https://docs.microsoft.com/en-us/azure/cosmos-db/graph/
 - Execute the four scripts in sequence
 
 ---
+
+## Jupyter Notebooks
+
+You can use Jupyter Notebooks running locally on your workstation to query
+your CosmosDB graph.
+
+See https://github.com/cjoakim/azure-jupyter and notebook **cosmos-gremlin.ipynb**.
+
 
 ## Miscellaneous
 

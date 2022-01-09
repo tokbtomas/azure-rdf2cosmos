@@ -210,15 +210,15 @@ public class Cache {
                 long startMs = System.currentTimeMillis();
                 StringBuilder sb = new StringBuilder();
                 sb.append("jdbc:postgresql://");
-                sb.append(AppConfig.getEnvVar("AZURE_PG_SERVER"));
+                sb.append(AppConfig.getAzurePostgresqlServer());
                 sb.append(".postgres.database.azure.com:5432/");
-                sb.append(AppConfig.getEnvVar("AZURE_PG_DATABASE"));
+                sb.append(AppConfig.getAzurePostgresqlDatabase());
                 sb.append("?ssl=true&sslmode=require");
 
                 Properties props = new Properties();
                 props.put("url", sb.toString());
-                props.put("user", AppConfig.getEnvVar("AZURE_PG_USER"));
-                props.put("password", AppConfig.getEnvVar("AZURE_PG_PASS"));
+                props.put("user", AppConfig.getAzurePostgresqlUser());
+                props.put("password", AppConfig.getAzurePostgresqlPassword());
 
                 log("url:       " + props.get("url"));
                 log("user:      " + props.get("user"));
