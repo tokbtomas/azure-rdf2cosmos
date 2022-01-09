@@ -38,28 +38,28 @@ public class Accumulator {
     //private HashMap<String, GraphNode> cache = null;
     private PersistentCache persistentCache = null;
 
-    public Accumulator() {
+//    public Accumulator() {
+//
+//        super();
+//
+//        if (AppConfig.isAzurePostgresqlCacheType()) {
+//            persistentCache = new DiskCache();
+//            //persistentCache = new PostgresqlCache();    <-- TODO: uncomment later
+//        }
+//        else {
+//            persistentCache = new DiskCache();
+//        }
+//    }
 
-        super();
-
-        if (AppConfig.isAzurePostgresqlCacheType()) {
-            persistentCache = new DiskCache();
-            //persistentCache = new PostgresqlCache();    <-- TODO: uncomment later
-        }
-        else {
-            persistentCache = new DiskCache();
-        }
-    }
-
-    public PersistentCache getPersistentCache() {
-
-        return persistentCache;
-    }
-
-    public void setPersistentCache(PersistentCache persistentCache) {
-
-        this.persistentCache = persistentCache;
-    }
+//    public PersistentCache getPersistentCache() {
+//
+//        return persistentCache;
+//    }
+//
+//    public void setPersistentCache(PersistentCache persistentCache) {
+//
+//        this.persistentCache = persistentCache;
+//    }
 
     //    public boolean containsKey(String key) {
 //
@@ -75,15 +75,15 @@ public class Accumulator {
      * Flush the cache to the sink (i.e. - disk) if the cache size is greater
      * than the given maxItemCount.
      */
-    public synchronized void flushCache() {
-
-        persistentCache.flushMemoryCache();
-    }
+//    public synchronized void flushCache() {
+//
+//        persistentCache.flushMemoryCache();
+//    }
 
 
     
-    private void log(String msg) {
-        
-        System.out.println(msg);
-    }
+//    private void log(String msg) {
+//
+//        System.out.println(msg);
+//    }
 } 
