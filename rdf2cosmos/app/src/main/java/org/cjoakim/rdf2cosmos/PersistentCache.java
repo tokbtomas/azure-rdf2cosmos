@@ -8,7 +8,8 @@ import org.apache.commons.io.FileUtils;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Abstract superclass of classes DiskCache and PostgresqlCache,

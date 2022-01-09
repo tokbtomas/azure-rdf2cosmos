@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Properties;
 
 /**
  * Concrete subclass of class Cache, implemented with Azure PostgreSQL

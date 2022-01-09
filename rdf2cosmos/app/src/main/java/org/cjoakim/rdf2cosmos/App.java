@@ -1,18 +1,12 @@
 package org.cjoakim.rdf2cosmos;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FileUtils;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
-import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 import org.cjoakim.rdf2cosmos.gremlin.GremlinLoader;
 import org.cjoakim.rdf2cosmos.gremlin.GroovyBuilder;
-import org.cjoakim.rdf2cosmos.gremlin.Property;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 /**
@@ -81,8 +75,6 @@ public class App {
         String fqInfile = AppConfig.getDataFileFqPath(infile);
         File f = new File(fqInfile);
         log("fqInfile: " + fqInfile + " exists: " + f.exists());
-
-        Accumulator accumulator = new Accumulator();
 
         // Write a stream out.
         StreamRDF output = StreamRDFLib.writer(System.out);
