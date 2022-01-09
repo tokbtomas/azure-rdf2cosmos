@@ -277,7 +277,7 @@ The following screen shot shows the execution of this DDL in Azure Data Studio:
 Before you execute the actual rdf2cosmos migration process with this database as the cache,
 you should execute a verification test to ensure that your system is configured properly.
 
-The **gradle testCache** can be executed from the command line (in the same directory as build.sh)
+The **gradle testCache** CLI command can be executed from the command line (in the same directory as build.sh)
 to test your remote Azure PostgreSQL Cache.  It should generate output similar to the following:
 
 ```
@@ -341,6 +341,7 @@ your CosmosDB graph.
 
 See https://github.com/cjoakim/azure-jupyter and notebook **cosmos-gremlin.ipynb**.
 
+---
 
 ## Miscellaneous
 
