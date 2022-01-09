@@ -3,7 +3,6 @@ package org.cjoakim.rdf2cosmos;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.FileUtils;
-import org.apache.jena.datatypes.DatatypeFormatException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.StreamRDF;
@@ -38,7 +37,7 @@ public class AppRdfStream extends StreamRDFWrapper {
     private HashMap<String, String> prefixMap = null;
     private HashMap<String, String> edgeLabelsMap = null;
     private ArrayList<String>  prefixList = new ArrayList<String>();
-    private Accumulator accumulator = null;
+    private PersistentCache persistentCache = null;
     private long tripleHandledCount = 0;
     private long tripleUnhandledCount = 0;
     private int  maxObjectCacheCount;
@@ -50,17 +49,25 @@ public class AppRdfStream extends StreamRDFWrapper {
         prefixMap = new HashMap<String, String>();
         edgeLabelsMap = new HashMap<String, String>();
         maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
+
+        if (AppConfig.isAzurePostgresqlCacheType()) {
+            persistentCache = new DiskCache();
+            //persistentCache = new PostgresqlCache();    <-- TODO: uncomment later
+        }
+        else {
+            persistentCache = new DiskCache();
+        }
         log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount);
     }
 
-    public Accumulator getAccumulator() {
+    public PersistentCache getPersistentCache() {
 
-        return accumulator;
+        return persistentCache;
     }
 
-    public void setAccumulator(Accumulator accumulator) {
+    public void setPersistentCache(PersistentCache persistentCache) {
 
-        this.accumulator = accumulator;
+        this.persistentCache = persistentCache;
     }
 
     public int getTripleCount() {
@@ -84,11 +91,11 @@ public class AppRdfStream extends StreamRDFWrapper {
         String outfile = AppConfig.getMetaFilename("edge_labels_map.json");
         writeJsonObject(this.edgeLabelsMap, outfile);
 
-        this.accumulator.flushCache(0);
+        this.persistentCache.flushMemoryCache();
 
         log("AppRdfStream_finish tripleHandledCount:   " + tripleHandledCount);
         log("AppRdfStream_finish tripleUnhandledCount: " + tripleUnhandledCount);
-        this.accumulator.eojLogging();
+        this.persistentCache.eojLogging();
     }
 
     @Override
@@ -142,25 +149,25 @@ public class AppRdfStream extends StreamRDFWrapper {
                     String label     = edgeLabel(p.toString());
                     edgeLabelsMap.put(label, p.toString());
                     String key = GraphNode.edgeCacheKey(vertexId1, vertexId2, label);
-                    gn = this.accumulator.getPersistentCache().getGraphNode(key);
+                    gn = this.persistentCache.getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_EDGE);
                         gn.setVertexId1(vertexId1);
                         gn.setVertexId2(vertexId2);
                         gn.setLabel(label);
-                        this.accumulator.getPersistentCache().putGraphNode(key, gn);
+                        this.persistentCache.putGraphNode(key, gn);
                     }
                     tripleHandled = true;
                 }
                 else {
                     // this triple is a Vertex or Vertex Property
                     String key = GraphNode.vertexCacheKey(vertexId1);
-                    gn = this.accumulator.getPersistentCache().getGraphNode(key);
+                    gn = this.persistentCache.getGraphNode(key);
                     if (gn == null) {
                         gn = new GraphNode(GraphNode.TYPE_VERTEX);
                         gn.setVertexId1(vertexId1);
                         gn.setLabel(resourceLabel);
-                        this.accumulator.getPersistentCache().putGraphNode(vertexId1, gn);
+                        this.persistentCache.putGraphNode(vertexId1, gn);
                     }
 
                     if (o.isLiteral()) {
@@ -189,7 +196,7 @@ public class AppRdfStream extends StreamRDFWrapper {
             else {
                 tripleUnhandledCount++;
             }
-            accumulator.flushCache(maxObjectCacheCount);
+            persistentCache.flushMemoryCache();
         }
         catch (Exception e) {
             log("Exception on triple " + getTripleCount() + ": " + triple);

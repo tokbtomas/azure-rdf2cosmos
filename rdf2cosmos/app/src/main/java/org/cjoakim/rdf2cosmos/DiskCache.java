@@ -33,7 +33,7 @@ public class DiskCache extends PersistentCache {
         super();
     }
 
-    public void flushMemoryCache(int maxItemCount) {
+    public void flushMemoryCache() {
 
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {

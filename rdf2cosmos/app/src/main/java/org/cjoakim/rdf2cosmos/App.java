@@ -89,12 +89,8 @@ public class App {
 
         // Wrap in a filter.
         AppRdfStream outputStream = new AppRdfStream(output);
-        outputStream.setAccumulator(accumulator);
 
         // Call the parsing process.
-//        FileInputStream fis = new FileInputStream(fqInfile);
-//        RDFParser.source(fis).parse(outputStream);
-
         RDFParser.source(fqInfile).parse(outputStream);
 
         log("App end_of_convertRdfToObjects with: " + infile);

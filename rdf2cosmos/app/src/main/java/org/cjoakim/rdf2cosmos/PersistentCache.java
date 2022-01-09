@@ -43,7 +43,7 @@ public abstract class PersistentCache {
         memoryCache = new HashMap<String, GraphNode>();
     }
 
-    public abstract void flushMemoryCache(int maxItemCount);
+    public abstract void flushMemoryCache();
 
 
     public GraphNode getGraphNode(String key) throws Exception {
@@ -125,6 +125,16 @@ public abstract class PersistentCache {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void eojLogging() {
+
+        log("Accumulator_eoj cache_hits:        " + cacheHits);
+        log("Accumulator_eoj cache_misses:      " + cacheMisses);
+        log("Accumulator_eoj cache_file_exists: " + cacheFileExists);
+        log("Accumulator_eoj cache_file_absent: " + cacheFileAbsent);
+        log("Accumulator_eoj cache_repopulated: " + cacheRepopulate);
+        log("Accumulator_eoj cache_exceptions:  " + cacheExceptions);
     }
 
     protected void log(String msg) {

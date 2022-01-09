@@ -26,7 +26,7 @@ public class PostgresqlCache extends PersistentCache {
         connected = connect();
     }
 
-    public void flushMemoryCache(int maxItemCount) {
+    public void flushMemoryCache() {
 
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {
