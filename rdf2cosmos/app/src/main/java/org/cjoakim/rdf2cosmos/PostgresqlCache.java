@@ -1,21 +1,19 @@
 package org.cjoakim.rdf2cosmos;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
-import org.cjoakim.rdf2cosmos.gremlin.Property;
 
 import java.sql.*;
 import java.util.*;
 
-public class Cache {
+public class PostgresqlCache {
 
     // Instance variables:
     private Connection pgConnection;
     private boolean    connected;
 
-    public Cache() {
+    public PostgresqlCache() {
 
         super();
         connected = connect();
@@ -254,7 +252,7 @@ public class Cache {
      */
     public static void main(String[] args) throws Exception {
 
-        Cache c = new Cache();
+        PostgresqlCache c = new PostgresqlCache();
         c.reconnect();
 
         log("=== deleteAll, count: " + c.deleteAll());

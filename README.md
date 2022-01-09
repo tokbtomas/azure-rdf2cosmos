@@ -277,36 +277,36 @@ The following screen shot shows the execution of this DDL in Azure Data Studio:
 Before you execute the actual rdf2cosmos migration process with this database as the cache,
 you should execute a verification test to ensure that your system is configured properly.
 
-The **gradle testCache** CLI command can be executed from the command line (in the same directory as build.sh)
+The **gradle testPostgresqlCache** CLI command can be executed from the command line (in the same directory as build.sh)
 to test your remote Azure PostgreSQL Cache.  It should generate output similar to the following:
 
 ```
-$ gradle testCache
+$ gradle testPostgresqlCache
 
-> Task :app:testCache
+> Task :app:testPostgresqlCache
 url:       jdbc:postgresql://cjoakimpostgresqlsrv1.postgres.database.azure.com:5432/dev?ssl=true&sslmode=require
 user:      cjoakim@cjoakimpostgresqlsrv1
 pw length: 12
-Database connection obtained in 1287 ms
+Database connection obtained in 1302 ms
 Cache reconnect ...
 Cache close ...
 Cache connection closed
 url:       jdbc:postgresql://cjoakimpostgresqlsrv1.postgres.database.azure.com:5432/dev?ssl=true&sslmode=require
 user:      cjoakim@cjoakimpostgresqlsrv1
 pw length: 12
-Database connection obtained in 709 ms
+Database connection obtained in 759 ms
 === deleteAll, count: 0
-{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":0,"updatedAt":0,"convertedAt":0}
-=== keyExists: vertex__miles_1641734425182 -> false
+{"type":"vertex","cacheKey":"vertex__miles_1641750426806","vertexId1":"miles_1641750426806","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":0,"updatedAt":0,"convertedAt":0}
+=== keyExists: vertex__miles_1641750426806 -> false
 persist gn1: true
-=== keyExists: vertex__miles_1641734425182 -> true
+=== keyExists: vertex__miles_1641750426806 -> true
 === getGraphNode
-{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641734425420,"updatedAt":1641734425420,"convertedAt":0}
+{"type":"vertex","cacheKey":"vertex__miles_1641750426806","vertexId1":"miles_1641750426806","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641750427069,"updatedAt":1641750427069,"convertedAt":0}
 persist gn2: true
 === getGraphNode
-{"type":"vertex","cacheKey":"vertex__miles_1641734425182","vertexId1":"miles_1641734425182","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"birth_date":{"name":"birth_date","value":"2017-12-28","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641734425420,"updatedAt":1641734425624,"convertedAt":0}
+{"type":"vertex","cacheKey":"vertex__miles_1641750426806","vertexId1":"miles_1641750426806","vertexId2":null,"label":null,"properties":{"color":{"name":"color","value":"black","dataType":"string"},"birth_date":{"name":"birth_date","value":"2017-12-28","dataType":"string"},"type":{"name":"type","value":"tux","dataType":"string"}},"createdAt":1641750427069,"updatedAt":1641750427285,"convertedAt":0}
 === getUnconverted, count: 1
-=== setConverted, key: vertex__miles_1641734425182
+=== setConverted, key: vertex__miles_1641750426806
 === getUnconverted, count: 0
 === deleteAll, count: 1
 Cache close ...
@@ -317,7 +317,7 @@ BUILD SUCCESSFUL in 3s
 ```
 
 The above output shows the functionality of the cache being invoked.
-See the **main()** method of class **org.cjoakim.rdf2cosmos.Cache** where this ad-hoc test is implemented.
+See the **main()** method of class **org.cjoakim.rdf2cosmos.PostgresqlCache** where this ad-hoc test is implemented.
 
 ---
 
