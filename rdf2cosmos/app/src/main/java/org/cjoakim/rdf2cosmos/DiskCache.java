@@ -2,28 +2,19 @@ package org.cjoakim.rdf2cosmos;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
-
-import java.sql.*;
-import java.util.*;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.FileUtils;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Abstract superclass of classes DiskCache and PostgresqlCache,
- * which override these methods as necessary.
- * 
+ * Subclass of PersistentCache, implements local disk caching
+ * of GraphNode objects.
+ *
  * Chris Joakim, Microsoft, January 2022
  */
 public class DiskCache extends PersistentCache {

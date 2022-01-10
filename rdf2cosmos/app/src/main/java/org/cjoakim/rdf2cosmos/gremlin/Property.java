@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Instances of this class represent a single Property for a Vertex or Edge
- * in a Gremlin/CosmosDB graph database.
+ * in a Gremlin/CosmosDB graph database.  These Property objects are added
+ * to GraphNode instances.
  *
  * Chris Joakim, Microsoft, January 2022
  */

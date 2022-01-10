@@ -14,6 +14,9 @@ import java.util.HashMap;
 /**
  * Abstract superclass of classes DiskCache and PostgresqlCache,
  * which override these methods as necessary.
+ *
+ * In-memory caching is implemented in this common superclass, but the
+ * accesss to the persistence mechanism is implemented in the subclasses.
  * 
  * Chris Joakim, Microsoft, January 2022
  */

@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.Properties;
 
 /**
- * Concrete subclass of class Cache, implemented with Azure PostgreSQL
- * as the persistence mechanism.
+ * Subclass of PersistentCache, implements Azure PostgreSQL caching
+ * of GraphNode objects.
  * 
  * Chris Joakim, Microsoft, January 2022
  */

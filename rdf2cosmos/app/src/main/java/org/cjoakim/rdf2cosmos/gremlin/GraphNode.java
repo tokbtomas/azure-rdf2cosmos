@@ -11,7 +11,9 @@ import java.util.Iterator;
 
 /**
  * Instances of this class represent either parsed RDF data for a Vertex or Edge
- * in a Gremlin/CosmosDB graph database.
+ * in a Gremlin/CosmosDB graph database.  They are used as growing/augmented
+ * data structures as the AppRdfStream parses the input RDF file(s).
+ * They can be serialized to JSON, and cached either on disk or database.
  *
  * Chris Joakim, Microsoft, January 2022
  */

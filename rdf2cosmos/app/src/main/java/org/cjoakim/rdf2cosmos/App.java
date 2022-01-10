@@ -7,11 +7,13 @@ import org.cjoakim.rdf2cosmos.gremlin.GremlinLoader;
 import org.cjoakim.rdf2cosmos.gremlin.GroovyBuilder;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * This is the entry-point into this application; it has a main() method.
  * See the main() method for functionality and command-line args.
+ *
+ * This class can be executed either via gradle tasks (see gradle.build file), or from
+ * a traditional command-line "java" program execution (see the *.sh and *.ps1 scripts).
  *
  * Chris Joakim, Microsoft, January 2022
  */

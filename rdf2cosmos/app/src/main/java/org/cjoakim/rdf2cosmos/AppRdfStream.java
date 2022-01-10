@@ -20,10 +20,10 @@ import java.util.HashMap;
  *
  * See SDK docs at https://jena.apache.org/documentation/javadoc/arq/org/apache/jena/riot/system/StreamRDFWrapper.html
  *
- * The primary event handled by this stream class is "triple(...)", "start()" and "finish()".
+ * The primary events handled by this stream class is "triple(...)", "start()", and "finish()".
  * The Triples are received, processed into "GraphNode" objects, and accumulated/aggregated
  * an instance of class PersistentCache (DiskCache or PostgresqlCache).  The GraphNode objects
- * in cache are flushed to disk or database at EOJ, and Gremlin/Groovy syntax can be created from
+ * in cache are flushed to disk or database, and Gremlin/Groovy syntax can be created from
  * these for loading into CosmosDB.
  *
  * Chris Joakim, Microsoft, January 2022

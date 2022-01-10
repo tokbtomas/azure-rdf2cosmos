@@ -13,11 +13,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * This class is used to read the parsed and cached JSON files and convert these
+ * This class is used to read the parsed and cached JSON GraphNodes and convert these
  * into "Groovy" syntax for loading into CosmosDB in a separate process.
- *
- * Each of the JSON files in the data/cache directory will be converted into the
- * corresponding Groovy syntax and written to one file in the data/gremlin directory.
+ * The set of GraphNodes used is obtained from either disk or Azure PostgreSQL cache.
  *
  * Chris Joakim, Microsoft, January 2022
  */

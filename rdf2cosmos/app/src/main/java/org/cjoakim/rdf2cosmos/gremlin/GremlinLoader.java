@@ -15,7 +15,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Load a CosmosDB/Graph/Gremlin database from a text file with "groovy statements" per line.
+ * Instances of this class are used to load a CosmosDB/Graph/Gremlin database
+ * froma text file with "groovy statements" per line.
  *
  * Chris Joakim, Microsoft, January 2022
  */
