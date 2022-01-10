@@ -31,13 +31,13 @@ $log_outfile5="log\convert_nt_to_objects5.txt"
 # echo 'executing convert_rdf_to_objects with '$rdf_infile2
 # java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile2 > $log_outfile2
 
-# echo 'executing convert_rdf_to_objects with '$rdf_infile3
-# java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile3 > $log_outfile3
+echo 'executing convert_rdf_to_objects with '$rdf_infile3
+java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile3 > $log_outfile3
 
 # echo 'executing convert_rdf_to_objects with '$rdf_infile4
 # java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile4 > $log_outfile4
 
-echo 'executing convert_rdf_to_objects with '$rdf_infile5
-java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile5 > $log_outfile5
+# echo 'executing convert_rdf_to_objects with '$rdf_infile5
+# java -jar app\build\libs\app-uber.jar convert_rdf_to_objects $rdf_infile5 > $log_outfile5
 
 echo 'done'

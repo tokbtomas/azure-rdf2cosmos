@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.cjoakim.rdf2cosmos.gremlin.GraphNode;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -47,6 +48,10 @@ public abstract class PersistentCache {
 
     public abstract long deleteAll() throws Exception;
 
+    public abstract ArrayList<GraphNode> getUnconverted(String nodeType, int maxCount) throws Exception;
+
+    public abstract boolean setConverted(GraphNode gn) throws Exception;
+
     public abstract void close();
 
     public void putGraphNode(String key, GraphNode gn) throws Exception {
@@ -54,12 +59,15 @@ public abstract class PersistentCache {
         if (key != null) {
             if (gn != null) {
                 memoryCache.put(key, gn);
-
-                if (memoryCache.size() > maxObjectCacheCount) {
-                    flushMemoryCache();
-                    resetMemoryCache();
-                }
             }
+        }
+    }
+
+    public void flushMemoryCacheIfNecessary() throws Exception {
+
+        if (memoryCache.size() >= maxObjectCacheCount) {
+            flushMemoryCache();
+            resetMemoryCache();
         }
     }
 

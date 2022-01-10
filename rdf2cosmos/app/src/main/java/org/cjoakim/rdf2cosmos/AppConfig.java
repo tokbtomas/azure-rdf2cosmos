@@ -38,6 +38,7 @@ public class AppConfig {
         log("AppConfig getDataDirectory:               " + getDataDirectory());
         log("AppConfig getCacheDirectory:              " + getCacheDirectory());
         log("AppConfig getMaxObjectCacheCount:         " + getMaxObjectCacheCount());
+        log("AppConfig cacheType:                      " + getCacheType());
 
         if (extended) {
             log("AppConfig isVerbose:                      " + isVerbose());
@@ -79,7 +80,14 @@ public class AppConfig {
 
     public static String getCacheType() {
 
-        return getEnvVar(AZURE_RDF2COSMOS_CACHE_TYPE);
+        String type = getEnvVar(AZURE_RDF2COSMOS_CACHE_TYPE);
+        if (type == null) {
+            return CACHE_TYPE_LOCAL_DISK;  // default
+        }
+        if (type.equalsIgnoreCase(CACHE_TYPE_AZURE_POSTGRESQL)) {
+            return type;
+        }
+        return CACHE_TYPE_LOCAL_DISK;  // default
     }
 
     public static boolean isAzurePostgresqlCacheType() {

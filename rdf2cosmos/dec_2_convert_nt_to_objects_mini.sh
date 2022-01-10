@@ -6,7 +6,8 @@
 
 ddir=$AZURE_RDF2COSMOS_DATA_DIR  # ddir is a shorthand abbreviation for AZURE_RDF2COSMOS_DATA_DIR
 
-export AZURE_RDF2COSMOS_CACHE_TYPE="az-postgresql"  # local-disk or az-postgresql 
+# export AZURE_RDF2COSMOS_CACHE_TYPE="local-disk" 
+# export AZURE_RDF2COSMOS_CACHE_TYPE="az-postgresql" 
 
 mkdir -p log
 mkdir -p $ddir/cache
@@ -14,7 +15,7 @@ mkdir -p $ddir/cache
 echo 'executing clear_cache with '$AZURE_RDF2COSMOS_CACHE_TYPE
 java -jar app/build/libs/app-uber.jar clear_cache $AZURE_RDF2COSMOS_CACHE_TYPE
 
-echo 'pausing 10 seconds...'
+echo 'pausing 10 seconds after clear_cache ...'
 sleep 10
 
 rdf_infile3=$ddir"/raw/december/gdata/cmt_mini.nt"

@@ -30,6 +30,7 @@ public class PostgresqlCache extends PersistentCache {
 
     public void flushMemoryCache() throws Exception {
 
+        log("flushMemoryCache");
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
@@ -122,7 +123,7 @@ public class PostgresqlCache extends PersistentCache {
 
         ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
 
-        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where type = ? and converted_at < 1";
+        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where type = ? and converted_at < 1 order by created_at limit ?";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
         stmt.setString(1, nodeType);
         stmt.setLong(2, maxCount);
@@ -149,9 +150,10 @@ public class PostgresqlCache extends PersistentCache {
         long epoch = System.currentTimeMillis();
         gn.setUpdatedAt(epoch);
 
-        String sql= "update node_cache set converted_at = 1 where key = ?";
+        String sql= "update node_cache set converted_at = ? where key = ?";
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
-        stmt.setString(1, gn.getCacheKey());
+        stmt.setLong(1, System.currentTimeMillis());
+        stmt.setString(2, gn.getCacheKey());
 
         int count = stmt.executeUpdate();
         return (count > 0) ? true : false;
@@ -259,13 +261,6 @@ public class PostgresqlCache extends PersistentCache {
         }
     }
 
-
-
-    private static void loghh(String msg) {
-
-        System.out.println(msg);
-    }
-
     /**
      * This method is used for ad-hoc testing and development only.
      */
@@ -305,5 +300,10 @@ public class PostgresqlCache extends PersistentCache {
         System.out.println("=== deleteAll, count: " + c.deleteAll());
 
         c.close();
+    }
+
+    protected void log(String msg) {
+
+        System.out.println("PostgresqlCache: " + msg);
     }
 }

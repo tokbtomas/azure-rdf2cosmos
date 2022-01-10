@@ -35,6 +35,7 @@ public class DiskCache extends PersistentCache {
 
     public void flushMemoryCache() throws Exception {
 
+        log("flushMemoryCache");
         Iterator<String> it = memoryCache.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
@@ -118,4 +119,20 @@ public class DiskCache extends PersistentCache {
 
         return;
     }
+
+    public ArrayList<GraphNode> getUnconverted(String nodeType, int maxCount) throws Exception {
+
+        return null;  // a no-op implementation in this class; see superclass
+    }
+
+    public boolean setConverted(GraphNode gn) throws Exception {
+
+        return false;  // a no-op implementation in this class; see superclass
+    }
+
+    protected void log(String msg) {
+
+        System.out.println("DiskCache: " + msg);
+    }
+
 }

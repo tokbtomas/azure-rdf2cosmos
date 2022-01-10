@@ -319,6 +319,11 @@ BUILD SUCCESSFUL in 3s
 The above output shows the functionality of the cache being invoked.
 See the **main()** method of class **org.cjoakim.rdf2cosmos.PostgresqlCache** where this ad-hoc test is implemented.
 
+
+```
+update public.node_cache set converted_at = 0 where converted_at > 0
+```
+
 ---
 
 ## Quick Start Instructions

@@ -75,16 +75,8 @@ public class App {
 
     private static void clearCache(String cacheType) {
 
-        PersistentCache persistentCache = null;
-
-        if (cacheType.equalsIgnoreCase(AppConfig.CACHE_TYPE_AZURE_POSTGRESQL)) {
-            persistentCache = new PostgresqlCache();
-        }
-        else {
-            persistentCache = new DiskCache();
-        }
-
         try {
+            PersistentCache persistentCache = getPersistentCacheInstance();
             persistentCache.deleteAll();
             persistentCache.deleteAll();
         }
@@ -101,11 +93,13 @@ public class App {
         File f = new File(fqInfile);
         log("fqInfile: " + fqInfile + " exists: " + f.exists());
 
+        PersistentCache persistentCache = getPersistentCacheInstance();
+
         // Write a stream out.
         StreamRDF output = StreamRDFLib.writer(System.out);
 
         // Wrap in a filter.
-        AppRdfStream outputStream = new AppRdfStream(output);
+        AppRdfStream outputStream = new AppRdfStream(output, persistentCache);
 
         // Call the parsing process.
         RDFParser.source(fqInfile).parse(outputStream);
@@ -115,12 +109,13 @@ public class App {
 
     private static void convertObjectsToGremlinGroovy() {
 
-        log("convertObjectsToGremlinGroovy....");
-        GroovyBuilder builder = new GroovyBuilder();
         try {
+            log("convertObjectsToGremlinGroovy....");
+            PersistentCache persistentCache = getPersistentCacheInstance();
+            GroovyBuilder builder = new GroovyBuilder(persistentCache);
             builder.build();
         }
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -141,6 +136,20 @@ public class App {
      */
     private static void AdHoc() {
 
+    }
+
+    /**
+     * Return either an instance of DiskCache or PostgresqlCache depending on
+     * application configuration.
+     */
+    private static PersistentCache getPersistentCacheInstance() {
+
+        if (AppConfig.isAzurePostgresqlCacheType()) {
+            return new PostgresqlCache();
+        }
+        else {
+            return new DiskCache();
+        }
     }
 
     private static void log(String msg) {

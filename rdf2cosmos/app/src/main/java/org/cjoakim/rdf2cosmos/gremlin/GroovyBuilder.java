@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.cjoakim.rdf2cosmos.AppConfig;
+import org.cjoakim.rdf2cosmos.PersistentCache;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,44 +28,82 @@ public class GroovyBuilder {
     private File outputFile = null;
     private ArrayList<String> outputLines = null;
     private int maxOutputLinesCacheCount;
+    private PersistentCache persistentCache = null;
 
-    public GroovyBuilder() {
+    public GroovyBuilder(PersistentCache cacheObject) {
 
         super();
 
         this.outputFile = new File(AppConfig.getGremlinFilename("groovy.txt"));
         resetOutputLines();
         maxOutputLinesCacheCount = AppConfig.getMaxObjectCacheCount();
+        persistentCache = cacheObject;
     }
 
-    public void build() throws IOException {
+    public void build() throws Exception {
 
-        log("GroovyBuilder.build() start");
+        String cacheClassname = persistentCache.getClass().getName();
+        log("GroovyBuilder.build() start, cache class: " + cacheClassname);
         deleteRecreateOutfile();
-        buildGroovyNodes("vertex__");
-        buildGroovyNodes("edge__");
+        if (cacheClassname.contains("Disk")) {
+            buildGroovyNodesFromDiskCache("vertex__");
+            buildGroovyNodesFromDiskCache("edge__");
+        }
+        else {
+            buildGroovyNodesFromAzurePostgresqlCache("vertex");
+            buildGroovyNodesFromAzurePostgresqlCache("edge");
+        }
         log("GroovyBuilder.build() finish");
     }
 
-    private void buildGroovyNodes(String type) throws IOException {
+    private void buildGroovyNodesFromDiskCache(String type) throws IOException {
 
         ArrayList<String> filesList = getCacheFilesList(type);
-        log("buildGroovyNodes type: " + type + ", file count: " + filesList.size());
+        log("buildGroovyNodesFromDiskCache type: " + type + ", file count: " + filesList.size());
 
         for (int i = 0; i < filesList.size(); i++) {
             String filename = filesList.get(i);
             GraphNode gn = readCachedGraphNode(filename);
             if (gn.isValid()) {
-                String groovy = gn.toGroovy();
-                //log(groovy);
-                outputLines.add(groovy);
-
+                outputLines.add(gn.toGroovy());
                 if (outputLines.size() > maxOutputLinesCacheCount) {
                     flushOutputLines();
                 }
             }
         }
         flushOutputLines();
+    }
+
+    private void buildGroovyNodesFromAzurePostgresqlCache(String type) throws Exception {
+
+        boolean allRowsProcessed = false;
+        long batchReadCount = 0;
+
+        while (allRowsProcessed != true) {
+            batchReadCount++;
+            log("type: " + type + ", batchReadCount = " + batchReadCount);
+            ArrayList<GraphNode> nodes = persistentCache.getUnconverted(type, 20);
+            if (nodes.size() < 1) {
+                allRowsProcessed = true;  // terminates the while loop
+                log("allRowsProcessed is now true");
+                flushOutputLines();
+            }
+            else {
+                for (int i = 0; i < nodes.size(); i++) {
+                    GraphNode gn = nodes.get(i);
+                    if (gn.isValid()) {
+                        outputLines.add(gn.toGroovy());
+                        if (outputLines.size() > maxOutputLinesCacheCount) {
+                            flushOutputLines();
+                        }
+                    }
+                    boolean b = persistentCache.setConverted(gn);
+                    if (b == false) {
+                        log("unable to set row to converted; " + gn.getCacheKey());
+                    }
+                }
+            }
+        }
     }
 
     private ArrayList<String> getCacheFilesList(String type) {
@@ -131,6 +170,7 @@ public class GroovyBuilder {
     private void flushOutputLines() throws IOException {
 
         String sep = System.lineSeparator();
+        log("flushOutputLines");
 
         for (int i = 0; i < outputLines.size(); i++) {
             String line = outputLines.get(i) + sep;
@@ -146,6 +186,6 @@ public class GroovyBuilder {
 
     private void log(String msg) {
 
-        System.out.println(msg);
+        System.out.println("GroovyBuilder: " + msg);
     }
 }

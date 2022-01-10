@@ -43,23 +43,17 @@ public class AppRdfStream extends StreamRDFWrapper {
     private long tripleUnhandledCount = 0;
     private int  maxObjectCacheCount;
 
-    AppRdfStream(StreamRDF dest) {
+
+    AppRdfStream(StreamRDF dest, PersistentCache cacheObject) {
 
         super(dest);
         startTime = System.currentTimeMillis();
         prefixMap = new HashMap<String, String>();
         edgeLabelsMap = new HashMap<String, String>();
         maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
-
-        if (AppConfig.isAzurePostgresqlCacheType()) {
-            log("using PostgresqlCache");
-            persistentCache = new PostgresqlCache();
-        }
-        else {
-            log("using DiskCache");
-            persistentCache = new DiskCache();
-        }
-        log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount);
+        persistentCache = cacheObject;
+        log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount +
+                  ", cache class: " + persistentCache.getClass().getName());
     }
 
     public int getTripleCount() {
@@ -195,6 +189,13 @@ public class AppRdfStream extends StreamRDFWrapper {
         }
         catch (Exception e) {
             log("Exception on triple " + getTripleCount() + ": " + triple);
+            e.printStackTrace();
+        }
+
+        try {
+            persistentCache.flushMemoryCacheIfNecessary();
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
