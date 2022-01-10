@@ -105,6 +105,7 @@ public class DiskCache extends PersistentCache {
             FileUtils.delete(f);
             count++;
         }
+        log("delete count " + count);
         return count;
     }
 

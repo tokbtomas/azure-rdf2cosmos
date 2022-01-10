@@ -35,6 +35,11 @@ public class App {
                         displayAppConfig();
                         break;
 
+                    case "clear_cache":
+                        String cacheType = args[1];
+                        clearCache(cacheType);
+                        break;
+
                     case "convert_rdf_to_objects":
                         String infile = args[1];
                         convertRdfToObjects(infile);
@@ -66,6 +71,26 @@ public class App {
     private static void displayAppConfig() {
 
         AppConfig.display(false);
+    }
+
+    private static void clearCache(String cacheType) {
+
+        PersistentCache persistentCache = null;
+
+        if (cacheType.equalsIgnoreCase(AppConfig.CACHE_TYPE_AZURE_POSTGRESQL)) {
+            persistentCache = new PostgresqlCache();
+        }
+        else {
+            persistentCache = new DiskCache();
+        }
+
+        try {
+            persistentCache.deleteAll();
+            persistentCache.deleteAll();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void convertRdfToObjects(String infile) throws Exception {

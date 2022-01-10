@@ -39,6 +39,20 @@ task displayAppConfig(type: JavaExec) {
     args 'app_config'
 }
 
+// $ gradle clearDiskCache
+task clearDiskCache(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.cjoakim.rdf2cosmos.App'
+    args 'clear_cache', 'local-disk'
+}
+
+// $ gradle clearPostgresqlCache
+task clearPostgresqlCache(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.cjoakim.rdf2cosmos.App'
+    args 'clear_cache', 'az-postgresql'
+}
+
 // $ gradle testPostgresqlCache
 task testPostgresqlCache(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath

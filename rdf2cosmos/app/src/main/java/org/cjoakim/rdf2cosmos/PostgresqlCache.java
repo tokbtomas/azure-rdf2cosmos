@@ -142,7 +142,11 @@ public class PostgresqlCache extends PersistentCache {
         PreparedStatement stmt = pgConnection.prepareStatement(sql);
         stmt.setLong(1, Long.MIN_VALUE);
         stmt.setLong(2, Long.MAX_VALUE);
-        return stmt.executeUpdate();
+        log("delete sql:   " + stmt.toString());
+        // delete from node_cache where created_at > -9223372036854775808 and created_at < 9223372036854775807
+        long count = stmt.executeUpdate();
+        log("delete count: " + count);
+        return count;
     }
 
     public boolean reconnect() {

@@ -52,10 +52,11 @@ public class AppRdfStream extends StreamRDFWrapper {
         maxObjectCacheCount = AppConfig.getMaxObjectCacheCount();
 
         if (AppConfig.isAzurePostgresqlCacheType()) {
-            persistentCache = new DiskCache();
-            //persistentCache = new PostgresqlCache();    <-- TODO: uncomment later
+            log("using PostgresqlCache");
+            persistentCache = new PostgresqlCache();
         }
         else {
+            log("using DiskCache");
             persistentCache = new DiskCache();
         }
         log("AppRdfStream maxObjectCacheCount: " + maxObjectCacheCount);
@@ -184,7 +185,7 @@ public class AppRdfStream extends StreamRDFWrapper {
                 log("ERROR - unexpected triple, subj not a resource URI: " + triple);
             }
 
-            log("triple_handled: " + tripleHandled + " " + triple);
+            // log("triple_handled: " + tripleHandled + " " + triple);
             if (tripleHandled) {
                 tripleHandledCount++;
             }
