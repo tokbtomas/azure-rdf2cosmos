@@ -118,6 +118,45 @@ public class PostgresqlCache extends PersistentCache {
         return (count > 0) ? true : false;
     }
 
+    public ArrayList<GraphNode> getUnconverted(String nodeType, int maxCount) throws Exception {
+
+        ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
+
+        String sql = "select type, data, created_at, updated_at, converted_at from node_cache where type = ? and converted_at < 1";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, nodeType);
+        stmt.setLong(2, maxCount);
+
+        ResultSet resultSet = stmt.executeQuery();
+
+        while (resultSet.next()) {
+            String type       = resultSet.getString("type");
+            String data       = resultSet.getString("data");
+            long created_at   = resultSet.getLong("created_at");
+            long updated_at   = resultSet.getLong("updated_at");
+            long converted_at = resultSet.getLong("converted_at");
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            GraphNode gn = mapper.readValue(data, GraphNode.class);
+            nodes.add(gn);
+        }
+        return nodes;
+    }
+
+    public boolean setConverted(GraphNode gn) throws Exception {
+
+        long epoch = System.currentTimeMillis();
+        gn.setUpdatedAt(epoch);
+
+        String sql= "update node_cache set converted_at = 1 where key = ?";
+        PreparedStatement stmt = pgConnection.prepareStatement(sql);
+        stmt.setString(1, gn.getCacheKey());
+
+        int count = stmt.executeUpdate();
+        return (count > 0) ? true : false;
+    }
+
     public boolean insertGraphNode(GraphNode gn) throws Exception {
 
         long epoch = System.currentTimeMillis();
