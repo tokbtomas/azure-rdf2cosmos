@@ -39,11 +39,10 @@ A RDF to CosmosDB graph database migration process.
 - **The process is designed to support huge input files**
   - **streaming** Java APIs are used for reading
   - not limited by JVM memory
-  - utilizes out-of-JVM caching for **Aggregated Vertex and Edge Data**
+  - utilizes out-of-JVM persistent caching for **Aggregated Vertex and Edge Data**
     - Non-sequential input data re: Vertices, Edges, and their Properties
-    - v1 implementation uses JSON files on disk
-    - v2 implemention is Azure PostgreSQL
-      - v2 cache expected to be complete on 1/9 or sooner 
+    - Can utilize local disk as the cache
+    - Alternatively, Azure PostgreSQL can be used as the (unlimited) cache
 - CosmosDB can be loaded in one of several ways
   - As **groovy files** with Java Gremlin Driver (current implementation)
     - Library org.apache.tinkerpop:gremlin-driver:3.4.0
@@ -58,10 +57,12 @@ A RDF to CosmosDB graph database migration process.
 
 ### Roadmap
 
-- Complete the v2 Cache implementation with Azure PostgreSQL
 - Create Docker containers for both Apache Jena and this custom Java code
   - Docker containers are easier to deploy, and enable AKS/Kubernetes
-- Enable Azure Storage Blobs for IO
+- Enable Azure Storage Blobs for IO as an alterative source of RDF inputs
+  and Groovy output files
+
+---
 
 ### Step 1: Convert raw RDF files to NT Triples
 
@@ -81,12 +82,17 @@ $ riot --out nt $ddir/raw/december/gdata/mcma_v1.ttl > $ddir/raw/december/gdata/
 
 ### Step 2: Read the NT Triples and Aggregate Vertex & Edge Data
 
-The second step accumulates and transforms the *.nt files into Java objects that are persisted
-as JSON files.  The nt triples represent atomic data elements in an eventual Gremlin
-Vertex or Edge, and the nt files aren't necessarily sorted.  Therefore the atomic nt rows
-are **aggregated into JSON Vertex and Edge documents**.  The many Vertex and Edge JSON files are 
-each persisted to disk in the current implementation, but they can alternatively be persisted
-to a database (i.e. - CosmosDB/SQL or Azure PostgreSQL) to achieve scalability.
+The second step accumulates and transforms the *.nt files into Java objects that are 
+persisted as JSON - either to disk or Azure PostgreSQL.  The nt triples represent atomic
+data elements in an eventual Gremlin Vertex or Edge, and the nt files aren't necessarily
+sorted.  Therefore the atomic nt rows are **aggregated into JSON Vertex and Edge documents**.
+
+These documents, called **GraphNodes** in this implementation, are
+cached in JVM memory but are flushed to disk or database as the in-memory cache grows.
+Individual flushed GraphNodes can be easily be read from persistence and reserialized 
+into the in-memory cache as necessary, as the RDF streaming process encounters additional data for these GraphNodes.  Again, the input RDF data isn't sorted, and the data for
+an eventual CosmosDB Vertex or Edge can be scattered throughout a (huge) input file,
+therefore driving the design of this persistent cache approach.
 
 Example script:
 ```
@@ -95,9 +101,10 @@ $ java -jar app/build/libs/app-uber.jar convert_rdf_to_objects $rdf_infile5 > $l
 
 ### Step 3: Transform Aggregated data into a loadable format
 
-The third step transforms the JSON files into a format suitable for loading into CosmosDB/Gremlin.
-The current implementation uses the **Groovy** format.  Alternatively, CSV can be implemented
-in the future to enable the use of the 
+The third step transforms the JSON files into a format suitable for loading into
+CosmosDB/Gremlin.  The current implementation uses the **Groovy** format.
+
+Alternatively, CSV can be implemented in the future to enable the use of the 
 [azure-cosmosdb-gremlin-bulkloader](https://github.com/cjoakim/azure-cosmosdb-gremlin-bulkloader).
 
 Example script:
@@ -228,6 +235,9 @@ See the documentation at https://docs.microsoft.com/en-us/azure/cosmos-db/graph/
 
 ## Azure PostgreSQL Cache
 
+Azure PostgreSQL is only needed if you use the database-backed cache
+by setting environment variable **AZURE_RDF2COSMOS_CACHE_TYPE** to "az-postgresql".
+
 Provision an instance of the **Azure PostgreSQL** relational database PaaS service.
 
 Within that (server) account create a database of any name, such as **dev**.
@@ -277,8 +287,9 @@ The following screen shot shows the execution of this DDL in Azure Data Studio:
 Before you execute the actual rdf2cosmos migration process with this database as the cache,
 you should execute a verification test to ensure that your system is configured properly.
 
-The **gradle testPostgresqlCache** CLI command can be executed from the command line (in the same directory as build.sh)
-to test your remote Azure PostgreSQL Cache.  It should generate output similar to the following:
+The **gradle testPostgresqlCache** CLI command can be executed from the command line
+(in the same directory as build.sh) to test your remote Azure PostgreSQL Cache.
+It should generate output similar to the following:
 
 ```
 $ gradle testPostgresqlCache
@@ -319,6 +330,8 @@ BUILD SUCCESSFUL in 3s
 The above output shows the functionality of the cache being invoked.
 See the **main()** method of class **org.cjoakim.rdf2cosmos.PostgresqlCache** where this ad-hoc test is implemented.
 
+### SQL Samples
+
 
 ```
 update public.node_cache set converted_at = 0 where converted_at > 0
@@ -355,12 +368,15 @@ See https://github.com/cjoakim/azure-jupyter and notebook **cosmos-gremlin.ipynb
 The following design decisions were made to reduce solution complexity
 and to increase portability.
 
-- Gradle was chosen as the build tool for simplicity vs verbose Maven XML
-- The Gradle build process creates an easily deployable uber-jar file
-- No framework is used, such as Spring
-- No logging libraries are used, such as Log4J.  System.out.println instead
-- Initial cache system uses JSON files on local disk
-- If necessary, a V2 cache system will use CosmosDB/SQL
+- **Gradle** was chosen as the build tool for simplicity vs verbose Maven XML
+  - see file **rdf2cosmos/app/build.gradle** in this repo
+- The Gradle build process creates an easily deployable **uber-jar file**
+- The implementation uses the simplest possible Java code:
+  - No Application Framework is used, such as Spring.
+  - No Persistance Framework is used, such as Hibernate.  JDBC instead.
+  - No logging libraries are used, such as Log4J.  System.out.println instead
+- Class App is the entry-point to the application
+- See the JavaDoc comments at the top of each Java class
 
 ### Gremlin Queries
 
