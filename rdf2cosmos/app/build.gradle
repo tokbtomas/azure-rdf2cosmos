@@ -39,6 +39,13 @@ task displayAppConfig(type: JavaExec) {
     args 'app_config'
 }
 
+// $ gradle validateGroovy
+task validateGroovy(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.cjoakim.rdf2cosmos.App'
+    args 'validate_groovy', 'groovy.txt'
+}
+
 // $ gradle clearDiskCache
 task clearDiskCache(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath

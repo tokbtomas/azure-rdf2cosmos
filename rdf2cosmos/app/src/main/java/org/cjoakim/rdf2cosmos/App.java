@@ -5,6 +5,7 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.cjoakim.rdf2cosmos.gremlin.GremlinLoader;
 import org.cjoakim.rdf2cosmos.gremlin.GroovyBuilder;
+import org.cjoakim.rdf2cosmos.gremlin.GroovyFileScanner;
 
 import java.io.File;
 
@@ -49,6 +50,11 @@ public class App {
 
                     case "convert_objects_to_gremlin":
                         convertObjectsToGremlinGroovy();
+                        break;
+
+                    case "validate_groovy":
+                        String basename = args[1];  // basename example: 'groovy.txt"
+                        validateGroovy(basename);
                         break;
 
                     case "load_cosmosdb_graph":
@@ -120,6 +126,12 @@ public class App {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void validateGroovy(String basename) {
+
+        GroovyFileScanner gfs = new GroovyFileScanner(basename);
+        gfs.scan();
     }
 
     private static void loadCosmosDbGraph(String groovyStatementsFile) {
