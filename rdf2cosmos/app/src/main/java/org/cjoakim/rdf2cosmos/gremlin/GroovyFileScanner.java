@@ -16,13 +16,18 @@ import java.util.Scanner;
 public class GroovyFileScanner {
 
     // Constants:
-    public static final String VERTEX_ID_PATTERN = ".property('id','";
+    public static final String VERTEX_ID_PATTERN    = ".property('id','";
+    public static final String EDGE_ID1_PATTERN     = "g.V(['";
+    public static final String EDGE_ID2_PATTERN     = "to(g.V(['";
+    public static final String EMPTY_VALUE_PATTERN  = "''";
 
     // Instance variables:
     private String basename = null;
     private int groovyLineCount;
     private int vertexCount = 0;
     private int edgeCount = 0;
+    private int errorCount = 0;
+    private int exceptionCount = 0;
     private HashMap<String,String> vertexMap;
     private HashMap<String,String> edgeMap;
 
@@ -54,6 +59,10 @@ public class GroovyFileScanner {
                 String groovyLine = sc.nextLine();
                 if ((groovyLine != null) && (groovyLine.length() > 0)) {
                     groovyLineCount++;
+                    if (groovyLine.contains(EMPTY_VALUE_PATTERN)) {
+                        errorCount++;
+                        log("ERROR on line " + groovyLineCount + ", empty value | " + groovyLine);
+                    }
                     if (groovyLine.contains("addE(")) {
                         processEdgeLine(groovyLine);
                     }
@@ -68,7 +77,8 @@ public class GroovyFileScanner {
             eojDisplays();
         }
         catch (Exception ex) {
-            log("ERROR exception encountered " + ex.getClass().getName() + " " + ex.getMessage());
+            exceptionCount++;
+            log("EXCEPTION exception encountered " + ex.getClass().getName() + " " + ex.getMessage());
             ex.printStackTrace();
         }
         finally {
@@ -77,7 +87,8 @@ public class GroovyFileScanner {
                     inputStream.close();
                 }
                 catch (IOException ex2) {
-                    log("ERROR exception encountered closing inputStream " + ex2.getClass().getName() + " " + ex2.getMessage());
+                    exceptionCount++;
+                    log("EXCEPTION exception encountered closing inputStream " + ex2.getClass().getName() + " " + ex2.getMessage());
                     ex2.printStackTrace();
                 }
             }
@@ -104,6 +115,7 @@ public class GroovyFileScanner {
                 String id = groovyLine.substring(idIdx1, idIdx2);
                 log("id: " + id);
                 if (vertexMap.containsKey(id)) {
+                    errorCount++;
                     log("ERROR on line " + groovyLineCount + ", duplicate id | " + id);
                 }
                 else {
@@ -116,12 +128,14 @@ public class GroovyFileScanner {
                 }
             }
             catch (Exception e) {
-                log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN");
+                errorCount++;
+                log("ERROR on line " + groovyLineCount + ", inparsable id");
                 e.printStackTrace();
             }
         }
         else {
-            log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN | " + groovyLine);
+            errorCount++;
+            log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN");
         }
 
 
@@ -144,6 +158,8 @@ public class GroovyFileScanner {
         log("  vertexCount:     " + vertexCount);
         log("  vertexMap size:  " + vertexMap.size());
         log("  edgeCount:       " + edgeCount);
+        log("  errorCount:      " + errorCount);
+        log("  exceptionCount:  " + exceptionCount);
     }
 
     private void log(String msg) {
