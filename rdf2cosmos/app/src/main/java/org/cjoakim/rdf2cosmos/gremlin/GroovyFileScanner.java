@@ -152,6 +152,48 @@ public class GroovyFileScanner {
 
         // Edge line looks like:
         // g.V(['15bbd6c2-3345-4718-888f-0a231249188a-20191223','15bbd6c2-3345-4718-888f-0a231249188a-20191223']).addE('isStoryRoleIn').to(g.V(['17a154a4-58b0-4da4-965a-528461b26be6-20191223','17a154a4-58b0-4da4-965a-528461b26be6-20191223']))
+
+        int idIdx1a = groovyLine.indexOf(EDGE_ID1_PATTERN);
+        int idIdx2a = groovyLine.indexOf(EDGE_ID2_PATTERN);
+        log("idIdx1a: " + idIdx1a + ", idIdx2a: " + idIdx2a);
+
+//        public static final String EDGE_ID1_PATTERN     = "g.V(['";
+//        public static final String EDGE_ID2_PATTERN     = "to(g.V(['";
+
+        if ((idIdx1a >= 0) && (idIdx2a > idIdx1a)) {
+            int idIdx1b = idIdx1a + EDGE_ID1_PATTERN.length();
+            int idIdx1c = groovyLine.indexOf("'", idIdx1b);
+            log("idIdx1a " + idIdx1a + ", idIdx1b " + idIdx1b + ", idIdx1c " + idIdx1c);
+            String id1 = groovyLine.substring(idIdx1b, idIdx1c);
+            log("id1: " + id1);
+
+            int idIdx2b = idIdx2a + EDGE_ID2_PATTERN.length();
+            int idIdx2c = groovyLine.indexOf("'", idIdx2b);
+            String id2 = groovyLine.substring(idIdx2b, idIdx2c);
+            log("id2: " + id2);
+
+            if (id1.length() < 2) {
+                errorCount++;
+                log("ERROR on line " + groovyLineCount + ", id1 too short");
+            }
+            if (id2.length() < 2) {
+                errorCount++;
+                log("ERROR on line " + groovyLineCount + ", id2 too short");
+            }
+
+            if (!vertexMap.containsKey(id1)) {
+                errorCount++;
+                log("ERROR on line " + groovyLineCount + ", id1 is not a vertex id | " + id1);
+            }
+            if (!vertexMap.containsKey(id2)) {
+                errorCount++;
+                log("ERROR on line " + groovyLineCount + ", id2 is not a vertex id | " + id2);
+            }
+        }
+        else {
+            errorCount++;
+            log("ERROR on line " + groovyLineCount + ", malformed edge ids");
+        }
     }
 
     private void eojDisplays() {
