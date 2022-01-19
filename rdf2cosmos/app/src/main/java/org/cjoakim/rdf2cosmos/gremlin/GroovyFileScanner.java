@@ -20,6 +20,7 @@ public class GroovyFileScanner {
     public static final String EDGE_ID1_PATTERN     = "g.V(['";
     public static final String EDGE_ID2_PATTERN     = "to(g.V(['";
     public static final String EMPTY_VALUE_PATTERN  = "''";
+    public static final String NULL_VALUE_PATTERN   = "null";
 
     // Instance variables:
     private String basename = null;
@@ -59,9 +60,15 @@ public class GroovyFileScanner {
                 String groovyLine = sc.nextLine();
                 if ((groovyLine != null) && (groovyLine.length() > 0)) {
                     groovyLineCount++;
+                    log("line " + groovyLineCount + " | "+ groovyLine);
+
                     if (groovyLine.contains(EMPTY_VALUE_PATTERN)) {
                         errorCount++;
-                        log("ERROR on line " + groovyLineCount + ", empty value | " + groovyLine);
+                        log("ERROR on line " + groovyLineCount + ", empty value");
+                    }
+                    if (groovyLine.contains(NULL_VALUE_PATTERN)) {
+                        errorCount++;
+                        log("ERROR on line " + groovyLineCount + ", null value");
                     }
                     if (groovyLine.contains("addE(")) {
                         processEdgeLine(groovyLine);
@@ -101,7 +108,6 @@ public class GroovyFileScanner {
     private void processVertexLine(String groovyLine) {
 
         vertexCount++;
-        log("vertex line " + groovyLineCount + " | "+ groovyLine);
 
         // Vertex line looks like:
         // g.addV('xxx').property('id','z2fd528f4-cec2-4530-9640-13e11eb1fbf6ed79332f-b259-4cd7-bc9f-5be4f20625fa').property
@@ -137,9 +143,6 @@ public class GroovyFileScanner {
             errorCount++;
             log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN");
         }
-
-
-
     }
 
     private void processEdgeLine(String groovyLine) {
