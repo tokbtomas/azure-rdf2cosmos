@@ -115,15 +115,20 @@ public class GroovyFileScanner {
     private void loadRawInputs() {
 
         for (int i = 0; i < rawInputFiles.size(); i++) {
-            String fqFilename = AppConfig.getDataFileFqPath(rawInputFiles.get(i));
+            String path = rawInputFiles.get(i);
+            String fqFilename = AppConfig.getDataFileFqPath(path);
             log("Reading_raw_input: " + fqFilename);
             FileInputStream inputStream = null;
             Scanner sc = null;
+            int lineNum = 0;
             try {
                 inputStream = new FileInputStream(fqFilename);
                 sc = new Scanner(inputStream, "UTF-8");
                 while (sc.hasNextLine()) {
-                    this.rawInputLines.add(sc.nextLine());
+                    lineNum++;
+                    String raw = path + " " + lineNum + " | " + sc.nextLine();
+                    this.rawInputLines.add(raw);
+                    log("raw_input_line: " + raw);
                 }
                 if (sc.ioException() != null) {
                     throw sc.ioException();
@@ -154,12 +159,10 @@ public class GroovyFileScanner {
     }
 
     private void processVertexLine(String groovyLine) {
-
-        vertexCount++;
-
         // Vertex line looks like:
         // g.addV('xxx').property('id','z2fd528f4-cec2-4530-9640-13e11eb1fbf6ed79332f-b259-4cd7-bc9f-5be4f20625fa').property
 
+        vertexCount++;
         int idIdx0 = groovyLine.indexOf(VERTEX_ID_PATTERN);
         if (idIdx0 > 0) {
             try {
@@ -194,19 +197,13 @@ public class GroovyFileScanner {
     }
 
     private void processEdgeLine(String groovyLine) {
-
-        edgeCount++;
-        //log("edge line " + groovyLineCount + " | "+ groovyLine);
-
         // Edge line looks like:
         // g.V(['15bbd6c2-3345-4718-888f-0a231249188a-20191223','15bbd6c2-3345-4718-888f-0a231249188a-20191223']).addE('isStoryRoleIn').to(g.V(['17a154a4-58b0-4da4-965a-528461b26be6-20191223','17a154a4-58b0-4da4-965a-528461b26be6-20191223']))
 
+        edgeCount++;
         int idIdx1a = groovyLine.indexOf(EDGE_ID1_PATTERN);
         int idIdx2a = groovyLine.indexOf(EDGE_ID2_PATTERN);
         log("idIdx1a: " + idIdx1a + ", idIdx2a: " + idIdx2a);
-
-//        public static final String EDGE_ID1_PATTERN     = "g.V(['";
-//        public static final String EDGE_ID2_PATTERN     = "to(g.V(['";
 
         if ((idIdx1a >= 0) && (idIdx2a > idIdx1a)) {
             int idIdx1b = idIdx1a + EDGE_ID1_PATTERN.length();
@@ -232,16 +229,31 @@ public class GroovyFileScanner {
             if (!vertexMap.containsKey(id1)) {
                 errorCount++;
                 log("ERROR on line " + groovyLineCount + ", id1 is not a vertex id | " + id1);
+                scanRawDataForValue(id1);
             }
             if (!vertexMap.containsKey(id2)) {
                 errorCount++;
                 log("ERROR on line " + groovyLineCount + ", id2 is not a vertex id | " + id2);
+                scanRawDataForValue(id2);
             }
         }
         else {
             errorCount++;
             log("ERROR on line " + groovyLineCount + ", malformed edge ids");
         }
+    }
+
+    private void scanRawDataForValue(String s) {
+        int matcheCount = 0;
+        log("MATCHING: " + s);
+        for (int i = 0; i < rawInputLines.size(); i++) {
+            String line = rawInputLines.get(i);
+            if (line.contains(s)) {
+                matcheCount++;
+                log("MATCHED: " + line);
+            }
+        }
+        log("MATCH_COUNT: " + matcheCount + " for " + s);
     }
 
     private void eojDisplays() {
