@@ -2,13 +2,13 @@
 
     <description>
         Ant script to create a zip file backup of this project.
-        Chris Joakim, 2020/02/22
+        Chris Joakim, Microsoft, January 2022
         ant -f backup.xml
     </description>
 
     <!-- These are the only properties you should have to change.  -->
     <property name="_projectRoot"   value="/Users/${user.name}/github/" />
-    <property name="_projectName"   value="cj-ms" />
+    <property name="_projectName"   value="azure-rdf2cosmos" />
     <property name="_backupRoot"    value="/Users/${user.name}/Backups/projects" />
 
     <!-- These properties are computed from the above. -->
@@ -55,30 +55,24 @@
         <zip zipfile="${_zipFilename}"
              basedir="${_projectDir}"
              excludes=" 
+                **/.idea/,
+                **/.gradle/,
                 **/*.class,
                 **/*.jar,
-                **/*.pyc,
-                **/*.tar,
-                **/*.war,
                 **/*.zip,
                 **/.classpath,
                 **/.git/,
-                **/.mvn/,
                 **/.project,
                 **/.settings/,
+                **/app/build/,
+                **/app/bin/,
                 **/bin/,
-                **/coverage/,
-                **/include/,
                 **/lib/,
-                **/lib/python3.6/,
-                **/lib/python3.7/,
-                **/lib/python3.8/,
+                **/gradle/,
                 **/log/,
-                **/man/,
-                **/node_modules/,
+                **/remote.yaml,
                 **/target/,
-                **/tmp/,
-                **/txt_merged.txt" />
+                **/tmp/" />
 
         <echo message="file created: ${_zipFilename}" />
         <echo message="done." />
