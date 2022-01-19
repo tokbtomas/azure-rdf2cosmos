@@ -8,6 +8,8 @@
 **/*.class
 **/remote.yaml
 
+rdf2cosmos/app/bin/
+
 ## Generated
 
 .gradle
