@@ -4,6 +4,7 @@ import org.cjoakim.rdf2cosmos.AppConfig;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -19,15 +20,22 @@ public class GroovyFileScanner {
     private int groovyLineCount;
     private int vertexCount = 0;
     private int edgeCount = 0;
+    private HashMap<String,String> vertexMap;
+    private HashMap<String,String> edgeMap;
 
     public GroovyFileScanner(String basename) {
 
         super();
         this.basename = basename;
+        vertexMap = new HashMap<String,String>();
+        edgeMap   = new HashMap<String,String>();
     }
 
-    // addE
-
+    /**
+     * Scan the given groovy file, for loading into CosmosDB.  The sequence of the
+     * file is assumed to have all Vertices first, then the Edges - as was created
+     * in class GroovyBuilder.
+     */
     public void scan() {
 
         String fqFilename = AppConfig.getGremlinFilename(basename);
