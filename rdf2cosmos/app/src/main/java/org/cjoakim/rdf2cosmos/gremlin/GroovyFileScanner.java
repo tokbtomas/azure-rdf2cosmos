@@ -15,6 +15,9 @@ import java.util.Scanner;
  */
 public class GroovyFileScanner {
 
+    // Constants:
+    public static final String VERTEX_ID_PATTERN = ".property('id','";
+
     // Instance variables:
     private String basename = null;
     private int groovyLineCount;
@@ -88,12 +91,50 @@ public class GroovyFileScanner {
 
         vertexCount++;
         log("vertex line " + groovyLineCount + " | "+ groovyLine);
+
+        // Vertex line looks like:
+        // g.addV('xxx').property('id','z2fd528f4-cec2-4530-9640-13e11eb1fbf6ed79332f-b259-4cd7-bc9f-5be4f20625fa').property
+
+        int idIdx0 = groovyLine.indexOf(VERTEX_ID_PATTERN);
+        if (idIdx0 > 0) {
+            try {
+                int idIdx1 = idIdx0 + VERTEX_ID_PATTERN.length();
+                int idIdx2 = groovyLine.indexOf("'", idIdx1 + VERTEX_ID_PATTERN.length());
+                log("idIdx0 " + idIdx0 + ", idIdx1 " + idIdx1 + ", idIdx2 " + idIdx2);
+                String id = groovyLine.substring(idIdx1, idIdx2);
+                log("id: " + id);
+                if (vertexMap.containsKey(id)) {
+                    log("ERROR on line " + groovyLineCount + ", duplicate id | " + id);
+                }
+                else {
+                    if (id.length() < 8) {
+                        log("WARNING on line " + groovyLineCount + ", short id | " + id);
+                    }
+                    else {
+                        vertexMap.put(id, "" + groovyLineCount + " | " + groovyLine);
+                    }
+                }
+            }
+            catch (Exception e) {
+                log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN");
+                e.printStackTrace();
+            }
+        }
+        else {
+            log("ERROR on line " + groovyLineCount + ", no VERTEX_ID_PATTERN | " + groovyLine);
+        }
+
+
+
     }
 
     private void processEdgeLine(String groovyLine) {
 
         edgeCount++;
-        log("edge line " + groovyLineCount + " | "+ groovyLine);
+        //log("edge line " + groovyLineCount + " | "+ groovyLine);
+
+        // Edge line looks like:
+        // g.V(['15bbd6c2-3345-4718-888f-0a231249188a-20191223','15bbd6c2-3345-4718-888f-0a231249188a-20191223']).addE('isStoryRoleIn').to(g.V(['17a154a4-58b0-4da4-965a-528461b26be6-20191223','17a154a4-58b0-4da4-965a-528461b26be6-20191223']))
     }
 
     private void eojDisplays() {
@@ -101,6 +142,7 @@ public class GroovyFileScanner {
         log("EOJ Totals:");
         log("  groovyLineCount: " + groovyLineCount);
         log("  vertexCount:     " + vertexCount);
+        log("  vertexMap size:  " + vertexMap.size());
         log("  edgeCount:       " + edgeCount);
     }
 
