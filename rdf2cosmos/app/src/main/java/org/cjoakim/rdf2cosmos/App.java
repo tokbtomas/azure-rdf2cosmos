@@ -8,6 +8,7 @@ import org.cjoakim.rdf2cosmos.gremlin.GroovyBuilder;
 import org.cjoakim.rdf2cosmos.gremlin.GroovyFileScanner;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * This is the entry-point into this application; it has a main() method.
@@ -54,7 +55,11 @@ public class App {
 
                     case "validate_groovy":
                         String basename = args[1];  // basename example: 'groovy.txt"
-                        validateGroovy(basename);
+                        ArrayList<String> rawInputs = new ArrayList<String>();
+                        for (int i = 2; i < args.length; i++) {
+                            rawInputs.add(args[i]);
+                        }
+                        validateGroovy(basename, rawInputs);
                         break;
 
                     case "load_cosmosdb_graph":
@@ -128,9 +133,9 @@ public class App {
         }
     }
 
-    private static void validateGroovy(String basename) {
+    private static void validateGroovy(String basename, ArrayList<String> rawInputs) {
 
-        GroovyFileScanner gfs = new GroovyFileScanner(basename);
+        GroovyFileScanner gfs = new GroovyFileScanner(basename, rawInputs);
         gfs.scan();
     }
 

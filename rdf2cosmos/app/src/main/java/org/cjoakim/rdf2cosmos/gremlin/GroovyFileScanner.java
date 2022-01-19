@@ -4,6 +4,7 @@ import org.cjoakim.rdf2cosmos.AppConfig;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -31,11 +32,15 @@ public class GroovyFileScanner {
     private int exceptionCount = 0;
     private HashMap<String,String> vertexMap;
     private HashMap<String,String> edgeMap;
+    private ArrayList<String> rawInputFiles;
+    private ArrayList<String> rawInputLines;
 
-    public GroovyFileScanner(String basename) {
+    public GroovyFileScanner(String basename, ArrayList<String> rawInputs) {
 
         super();
         this.basename = basename;
+        rawInputFiles = rawInputs;                // <-- the raw RDF files produced by riot step 1
+        rawInputLines = new ArrayList<String>();  // <-- the aggregated nt file lines from riot step 1
         vertexMap = new HashMap<String,String>();
         edgeMap   = new HashMap<String,String>();
     }
@@ -49,6 +54,8 @@ public class GroovyFileScanner {
 
         String fqFilename = AppConfig.getGremlinFilename(basename);
         log("scan() fqFilename: " + fqFilename);
+
+        loadRawInputs();
 
         FileInputStream inputStream = null;
         Scanner sc = null;
@@ -103,6 +110,47 @@ public class GroovyFileScanner {
                 sc.close();
             }
         }
+    }
+
+    private void loadRawInputs() {
+
+        for (int i = 0; i < rawInputFiles.size(); i++) {
+            String fqFilename = AppConfig.getDataFileFqPath(rawInputFiles.get(i));
+            log("Reading_raw_input: " + fqFilename);
+            FileInputStream inputStream = null;
+            Scanner sc = null;
+            try {
+                inputStream = new FileInputStream(fqFilename);
+                sc = new Scanner(inputStream, "UTF-8");
+                while (sc.hasNextLine()) {
+                    this.rawInputLines.add(sc.nextLine());
+                }
+                if (sc.ioException() != null) {
+                    throw sc.ioException();
+                }
+            }
+            catch (Exception ex) {
+                exceptionCount++;
+                log("EXCEPTION exception encountered on raw file " + fqFilename);
+                ex.printStackTrace();
+            }
+            finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    }
+                    catch (IOException ex2) {
+                        exceptionCount++;
+                        log("EXCEPTION exception encountered closing raw file " + fqFilename);
+                        ex2.printStackTrace();
+                    }
+                }
+                if (sc != null) {
+                    sc.close();
+                }
+            }
+        }
+        log("Loaded_raw_inputs; line count: " + this.rawInputLines.size());
     }
 
     private void processVertexLine(String groovyLine) {
@@ -200,6 +248,8 @@ public class GroovyFileScanner {
 
         log("EOJ Totals:");
         log("  groovyLineCount: " + groovyLineCount);
+        log("  rawInput files:: " + rawInputFiles.size());
+        log("  rawInput lines:: " + rawInputLines.size());
         log("  vertexCount:     " + vertexCount);
         log("  vertexMap size:  " + vertexMap.size());
         log("  edgeCount:       " + edgeCount);
