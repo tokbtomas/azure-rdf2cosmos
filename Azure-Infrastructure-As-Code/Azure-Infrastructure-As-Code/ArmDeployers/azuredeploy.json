@@ -1,0 +1,233 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "artifactsSaBaseUri": {
+      "type": "string"
+    },
+    "artifactsSaSasToken": {
+      "type": "securestring"
+    },
+    "baseName": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string",
+      "metadata": {
+        "description": "3 Letter Evironment Abreviation"
+      }
+    },
+    "deploymentFlags": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is the parameter file under parameters folder"
+      }
+    },
+    "settings": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is the parameter file under parameters folder"
+      }
+    }
+  },
+  "variables": {
+    "resourceBaseName": "[tolower(concat(parameters('baseName'), parameters('environment')))]",
+    "baseResourceGroupName": "[toupper(concat('RG-', parameters('baseName'), '-', parameters('environment'), '-'))]",
+    "resourceNames": {
+      "baseTemplatePath": "/BaseTemplates/",
+      "componentsTemplatePath": "/Components/",
+      "scriptsTemplatePath": "/Scripts/",
+      "installersPath": "/Installers/",
+      "factoriesPath": "/Factories/",
+      "environment": "[tolower(parameters('environment'))]",
+      "resourceBaseName": "[tolower(concat(parameters('baseName'), parameters('environment')))]",
+      "commonResourceGroupName": "[toupper(concat(variables('baseResourceGroupName'), parameters('settings').common.tag))]",
+      "dataResourceGroupName": "[toupper(concat(variables('baseResourceGroupName'), 'DATA'))]",
+      "dataMigrationResourceGroupName": "[toupper(concat(variables('baseResourceGroupName'), 'DATA-MIGRATION'))]",
+      "storageAccountBaseName": "[concat(variables('resourceBaseName'), 'sa')]",
+      "automationAccountName": "[concat(variables('resourceBaseName'),'ac')]",
+      "appInsightsName": "[concat(variables('resourceBaseName'), 'ai')]",
+      "datafactoryName": "[concat(variables('resourceBaseName'), 'df')]",
+      "recoveryVaultName": "[concat(variables('resourceBaseName'), 'asr')]",
+      "hostingPlanBaseName": "[concat(variables('resourceBaseName'), 'hp')]",
+      "functionAppBaseName": "[concat(variables('resourceBaseName'), 'fcn')]",
+      "cosmosDbBaseName": "[concat(variables('resourceBaseName'), 'cdb')]",
+      "nameSpaceBaseName": "[concat(variables('resourceBaseName'), 'ns')]",
+      "hybridConnectionBaseName": "[concat(variables('resourceBaseName'), 'hc')]",
+      "azureSqlServeBaseName": "[concat(variables('resourceBaseName'), 'sqlsrv')]",
+      "keyVaultBaseName": "[concat(variables('resourceBaseName'), 'kv')]",
+      "workspaceBaseName": "[concat(variables('resourceBaseName'), 'la')]",
+      "vnetBaseName": "[concat(variables('resourceBaseName'), 'vnet')]",
+      "artifactsStorageAccountName": "[concat(variables('resourceBaseName'),'saartifacts')]",
+      "diagnosysStorageAccountName": "[concat(variables('resourceBaseName'), 'sadiag')]",
+      "appKeyVaultName": "[concat(variables('resourceBaseName'), 'kvapp')]",
+      "appKeyVaultId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',toupper(concat(variables('baseResourceGroupName'), parameters('settings').common.tag)),'/providers/Microsoft.KeyVault/vaults/',variables('resourceBaseName'), 'kvapp')]",
+      "workspaceName": "[concat(variables('resourceBaseName'), 'lacommon')]",
+      "workspaceId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',toupper(concat(variables('baseResourceGroupName'), parameters('settings').common.tag)),'/providers/microsoft.operationalinsights/workspaces/',variables('resourceBaseName'), 'lacommon')]"
+    }
+  },
+  "resources": [
+    {
+      "name": "[take(concat('CreateResourceGroups-',deployment().name),60)]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2018-05-01",
+      "location": "[parameters('settings').common.region]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('resourceNames').baseTemplatePath, 'template-resourceGroups.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "resourceGrouptNames": {
+            "value": [
+              "[variables('resourceNames').commonResourceGroupName]",
+              "[if(parameters('deploymentFlags').deployCosmosDb, variables('resourceNames').dataResourceGroupName,'skip1')]",
+              "[if(parameters('deploymentFlags').deployDataMigrationResources, variables('resourceNames').dataMigrationResourceGroupName,'skip2')]"
+            ]
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "location": {
+            "value": "[parameters('settings').common.region]"
+          },
+          "componentId": {
+            "value": "[parameters('settings').common.componentId]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "[take(concat('DeployCommon-',deployment().name),60)]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "[concat('CreateResourceGroups-',deployment().name)]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('resourceNames').componentsTemplatePath, 'Common/common-resources.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "deploymentFlags": {
+            "value": "[parameters('deploymentFlags')]"
+          },
+          "settings": {
+            "value": "[parameters('settings')]"
+          },
+          "resourceNames": {
+            "value": "[variables('resourceNames')]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[or(parameters('deploymentFlags').deploySecrets,parameters('deploymentFlags').setAppKeyVaultPermissions,parameters('deploymentFlags').isNewEnvironment)]",
+      "name": "[take(concat('DeploySecrets-',deployment().name),60)]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "[take(concat('DeployCommon-',deployment().name),60)]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('resourceNames').componentsTemplatePath, 'Common/secret-manager.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "deploymentFlags": {
+            "value": "[parameters('deploymentFlags')]"
+          },
+          "settings": {
+            "value": "[parameters('settings')]"
+          },
+          "resourceNames": {
+            "value": "[variables('resourceNames')]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').deployCosmosDb]",
+      "name": "[take(concat('DeployCosmosDb-',deployment().name),60)]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceNames').dataResourceGroupName]",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "[take(concat('DeployCommon-',deployment().name),60)]",
+        "[take(concat('DeploySecrets-',deployment().name),60)]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('resourceNames').componentsTemplatePath, 'Data/cosmos-db-repository.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "settings": {
+            "value": "[parameters('settings')]"
+          },
+          "resourceNames": {
+            "value": "[variables('resourceNames')]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').deployDataMigrationResources]",
+      "name": "[take(concat('DeployMigration-',deployment().name),60)]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceNames').dataMigrationResourceGroupName]",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "[take(concat('DeployCommon-',deployment().name),60)]",
+        "[take(concat('DeploySecrets-',deployment().name),60)]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('resourceNames').componentsTemplatePath, 'DataMigration/data-migration-resources.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "settings": {
+            "value": "[parameters('settings')]"
+          },
+          "resourceNames": {
+            "value": "[variables('resourceNames')]"
+          },
+          "appKeyVaultId": {
+            "value": "[if(parameters('deploymentFlags').isNewEnvironment,reference(take(concat('DeployCommon-',deployment().name),60)).outputs.appKeyVaultResourceId.value,variables('resourceNames').appKeyVaultId)]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}

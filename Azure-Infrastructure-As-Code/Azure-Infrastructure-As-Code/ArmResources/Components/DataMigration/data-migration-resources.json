@@ -1,0 +1,256 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "artifactsSaBaseUri": {
+      "type": "string"
+    },
+    "artifactsSaSasToken": {
+      "type": "securestring"
+    },
+    "settings": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is coming from the parameter File under Parameters"
+      }
+    },
+    "resourceNames": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is coming from the parameter File under Parameters"
+      }
+    },
+    "date": {
+      "type": "string",
+      "defaultValue": "[utcNow()]"
+    },
+    "appKeyVaultId": {
+      "type": "string",
+      "metadata": {
+        "description": "This is the resourceId of the Keyvault where the application secrets are stored"
+      }
+    }
+  },
+  "variables": {
+    "subnetName": "Subnet-1",
+    "virtualNetworkName": "[concat(parameters('resourceNames').vnetBaseName,parameters('settings').dataMigration.tag)]",
+    "vmBaseName": "[toupper(concat(parameters('resourceNames').resourceBaseName,parameters('settings').dataMigration.tag))]",
+    "availabilitySetName": "[concat(variables('vmBaseName'),'AVSET')]",
+    "listOfScripts": [
+      {
+        "powershellFileName": "ConfigureStoragePools.ps1",
+        "powershellParameters": "[parameters('settings').dataMigration.vmConfig.driveConfig]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "InstallJRE.ps1",
+        "powershellParameters": "[concat(' -InstallerURI ', parameters('artifactsSaBaseUri'), parameters('resourceNames').installersPath, ' -SASToken ', '\"', parameters('artifactsSaSasToken'), '\"', '  -JREInstallerName ', 'jre-11.0.10.msi' )]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "InstallVisualC.ps1",
+        "powershellParameters": "[concat(' -InstallerURI ', parameters('artifactsSaBaseUri'), parameters('resourceNames').installersPath, ' -SASToken ', '\"', parameters('artifactsSaSasToken'), '\"')]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "comment": "This can be used to download files from the modules folder",
+        "powershellFileName": "DownloadFiles.ps1",
+        "powershellParameters": "[concat('-fileNameList ','apache-jena-4.3.2.zip', ' -destinationPath ', 'H:\\Apache-Jena\\', ' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath, ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "AddSystemVariables.ps1",
+        "powershellParameters": "[concat(' -EnvVariablesList ', 'JENA_HOME=H:\\Apache-Jena\\apache-jena-4.3.2,Path=H:\\Apache-Jena\\apache-jena-4.3.2\\bat')]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "DownloadFiles.ps1",
+        "powershellParameters": "[concat('-fileNameList Git-2.34.1-64-bit.exe',' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath, ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "InstallGit.ps1",
+        "powershellParameters": "[concat('-fileName Git-2.34.1-64-bit.exe',' -Verbose')]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "DownloadFiles.ps1",
+        "powershellParameters": "[concat('-fileNameList zuluJDK.msi',' -fileUri ', '\"','https://cdn.azul.com/zulu/bin/zulu17.32.13-ca-jdk17.0.2-win_x64.msi','\"' )]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "RunMsiFiles.ps1",
+        "powershellParameters": "[concat('-fileNameList zuluJDK.msi',' -Verbose')]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "condition": "[parameters('settings').dataMigration.isFirstDeployment]",
+      "name": "[concat('createNetworking-', parameters('date'))]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-virtualNetwork.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[variables('virtualNetworkName')]"
+          },
+          "location": {
+            "value": "[parameters('settings').common.region]"
+          },
+          "addressPrefix": {
+            "value": "[parameters('settings').dataMigration.vnetAddressPrefix]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "subnetPrefix": {
+            "value": "[parameters('settings').dataMigration.vnetSubnetPrefix]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('settings').dataMigration.isFirstDeployment]",
+      "apiVersion": "2016-04-30-preview",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('availabilitySetName')]",
+      "location": "[parameters('settings').common.region]",
+      "tags": {
+        "displayName": "AvailabilitySet"
+      },
+      "properties": {
+        "platformFaultDomainCount": "[if(greater(parameters('settings').dataMigration.vmConfig.numberOfInstances,5),3,2)]",
+        "platformUpdateDomainCount": 10,
+        "managed": true
+      }
+    },
+    {
+      "name": "[concat(variables('vmBaseName'),if(equals(parameters('settings').dataMigration.vmConfig.numberOfInstances,1),'1', copyindex(1)),'-CreateVirtualMachine')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "copy": {
+        "name": "CreateVirtualMachinesLoop",
+        "count": "[parameters('settings').dataMigration.vmConfig.numberOfInstances]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]",
+        "[concat('createNetworking-', parameters('date'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-virtualMachine-pip.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[concat(variables('vmBaseName'),if(equals(parameters('settings').dataMigration.vmConfig.numberOfInstances,1),'1', copyindex(1)))]"
+          },
+          "AvailabilitySetName": {
+            "value": "[variables('availabilitySetName')]"
+          },
+          "localAdminUserName": {
+            "value": "[parameters('settings').common.commonVMConfig.localAdminUserName]"
+          },
+          "localAdminPassword": {
+            "reference": {
+              "keyVault": {
+                "id": "[parameters('appKeyVaultId')]"
+              },
+              "secretName": "[parameters('settings').secretManager.secretReferences.localAdminPassword]"
+            }
+          },
+          "vmSize": {
+            "value": "[parameters('settings').dataMigration.vmConfig.vmSize]"
+          },
+          "AcceleratedNetworking": {
+            "value": "[parameters('settings').dataMigration.vmConfig.enableAcceleratedNetworking]"
+          },
+          "imagePublisher": {
+            "value": "[parameters('settings').common.commonVMConfig.OSImages.Windows.imagePublisher]"
+          },
+          "imageOffer": {
+            "value": "[parameters('settings').common.commonVMConfig.OSImages.Windows.imageOffer]"
+          },
+          "StorageAccountType": {
+            "value": "[parameters('settings').dataMigration.vmConfig.storageAccountType]"
+          },
+          "sku": {
+            "value": "[parameters('settings').common.commonVMConfig.OSImages.Windows.sku.latest]"
+          },
+          "dataDiskCount": {
+            "value": "[parameters('settings').dataMigration.vmConfig.dataDiskCount]"
+          },
+          "dataDiskSizeGB": {
+            "value": "[parameters('settings').dataMigration.vmConfig.dataDiskSizeGB]"
+          },
+          "virtualNetwork": {
+            "value": "[variables('virtualNetworkName')]"
+          },
+          "vnetResourceGroup": {
+            "value": "[resourceGroup().name]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "bootDiagnosysStorageAccountName": {
+            "value": "[parameters('resourceNames').diagnosysStorageAccountName]"
+          },
+          "bootDiagnosticsResourceGroupName": {
+            "value": "[parameters('resourceNames').commonResourceGroupName]"
+          },
+          "vmRegion": {
+            "value": "[parameters('settings').common.region]"
+          }
+        }
+      }
+    },
+    {
+      "name": "[concat(variables('vmBaseName'),if(equals(parameters('settings').dataMigration.vmConfig.numberOfInstances,1),'1', copyindex(1)),'-ExecuteMultipleScripts')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "copy": {
+        "name": "ExecuteMultipleScriptsLoop",
+        "count": "[parameters('settings').dataMigration.vmConfig.numberOfInstances]"
+      },
+      "dependsOn": [
+        "[concat(variables('vmBaseName'),if(equals(parameters('settings').dataMigration.vmConfig.numberOfInstances,1),'1', copyindex(1)),'-CreateVirtualMachine')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').factoriesPath, 'factory-powershell-executer.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "vmName": {
+            "value": "[concat(variables('vmBaseName'),if(equals(parameters('settings').dataMigration.vmConfig.numberOfInstances,1),'1', copyindex(1)))]"
+          },
+          "vmRegion": {
+            "value": "[parameters('settings').common.region]"
+          },
+          "listOfScripts": {
+            "value": "[variables('listOfScripts')]"
+          },
+          "resourceNames": {
+            "value": "[parameters('resourceNames')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

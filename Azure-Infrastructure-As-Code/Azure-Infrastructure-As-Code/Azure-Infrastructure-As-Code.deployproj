@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>d5fc4712-ab88-4300-8308-0d5cb7cf3b85</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>
+    </PrepareForBuildDependsOn>
+  </PropertyGroup>
+  <Import Condition=" Exists('Deployment.targets') " Project="Deployment.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+  <!-- vertag<:>start tokens<:>maj.min -->
+  <Import Condition=" Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets') " Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets" />
+  <!-- vertag<:>end -->
+  <ItemGroup>
+    <None Include="ArmDeployers\azuredeploy.json" />
+    <None Include="ArmDeployers\azuredeploy.parameters.json" />
+    <None Include="ArmResources\BaseTemplates\template-virtualNetwork.json" />
+    <None Include="ArmResources\BaseTemplates\template-appInsights.json" />
+    <None Include="ArmResources\BaseTemplates\template-cosmosdb-accounts.json" />
+    <None Include="ArmResources\BaseTemplates\template-function-hosting-plan.json" />
+    <None Include="ArmResources\BaseTemplates\template-function.json" />
+    <None Include="ArmResources\BaseTemplates\template-keyVault-diagnostics.json" />
+    <None Include="ArmResources\BaseTemplates\template-keyVault-permissions.json" />
+    <None Include="ArmResources\BaseTemplates\template-keyVault-secrets.json" />
+    <None Include="ArmResources\BaseTemplates\template-keyVault.json" />
+    <None Include="ArmResources\BaseTemplates\template-logAnalytics-solutions.json" />
+    <None Include="ArmResources\BaseTemplates\template-logAnalytics.json" />
+    <None Include="ArmResources\BaseTemplates\template-resourceGroups.json" />
+    <None Include="ArmResources\BaseTemplates\template-storageAccount-blob-container-policy.json" />
+    <None Include="ArmResources\BaseTemplates\template-storageAccount-blob-container.json" />
+    <None Include="ArmResources\BaseTemplates\template-storageAccount.json" />
+    <None Include="ArmResources\BaseTemplates\template-virtualMachine-pip.json" />
+    <None Include="ArmResources\BaseTemplates\template-virtualMachine-ps-script.json" />
+    <None Include="ArmResources\Components\Common\common-resources.json" />
+    <None Include="ArmResources\Components\Common\secret-manager.json" />
+    <None Include="ArmResources\Components\DataMigration\data-migration-resources.json" />
+    <None Include="ArmResources\Components\Data\cosmos-db-repository.json" />
+    <None Include="ArmResources\Factories\factory-powershell-executer.json" />
+    <None Include="ArmResources\Factories\factory-storageaccounts.json" />
+    <None Include="ArmResources\Installers\apache-jena-4.3.2.zip" />
+    <None Include="ArmResources\Installers\Git-2.34.1-64-bit.exe" />
+    <None Include="ArmResources\Installers\jre-11.0.10.msi" />
+    <None Include="ArmResources\Installers\readme.md" />
+    <None Include="ArmResources\Installers\vcredist_x64.exe" />
+    <None Include="ArmResources\Scripts\AddSystemVariables.ps1" />
+    <None Include="ArmResources\Scripts\ConfigureStoragePools.ps1" />
+    <None Include="ArmResources\Scripts\CopyDataFromShare.ps1" />
+    <None Include="ArmResources\Scripts\DownloadFiles.ps1" />
+    <None Include="ArmResources\Scripts\InstallJRE.ps1" />
+    <None Include="ArmResources\Scripts\InstallVisualC.ps1" />
+    <None Include="ArmResources\Scripts\InstallGit.ps1" />
+    <None Include="ArmResources\Scripts\RunMsiFiles.ps1" />
+    <None Include="Deployment.targets">
+      <Visible>False</Visible>
+    </None>
+    <Content Include="Deploy-AzureResourceGroup.ps1" />
+  </ItemGroup>
+  <Target Name="GetReferenceAssemblyPaths" />
+</Project>

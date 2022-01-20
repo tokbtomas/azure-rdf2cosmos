@@ -1,0 +1,50 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "hostingPlanName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the hosting Plan that you wish to create."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "defaultValue": "Dynamic"
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Y1"
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "name": "[parameters('hostingPlanName')]",
+      "location": "[parameters('location')]",
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "properties": {
+        "name": "[parameters('hostingPlanName')]"
+      },
+      "sku": {
+        "Tier": "[parameters('skuTier')]",
+        "Name": "[parameters('skuName')]"
+      }
+    }
+  ],
+  "outputs": {
+    "hostingPlanResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
+    }
+  }
+}

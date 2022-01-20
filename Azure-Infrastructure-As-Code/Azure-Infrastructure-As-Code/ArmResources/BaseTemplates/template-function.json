@@ -1,0 +1,122 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "artifactsSaBaseUri": {
+      "type": "string"
+    },
+    "artifactsSaSasToken": {
+      "type": "securestring"
+    },
+    "functionAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the function app that you wish to create."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "corsAllowURL": {
+      "type": "array",
+      "defaultValue": [
+        "https://functions.azure.com",
+        "https://functions-staging.azure.com",
+        "https://functions-next.azure.com"
+      ],
+      "metadata": {
+        "description": "This is a URL that will be allowed to call your function"
+      }
+    },
+    "appSettings": {
+      "type": "secureObject"
+    },
+    "hostingPlanResourceId": {
+      "type": "string"
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "Nothing",
+      "metadata": {
+        "description": "The name of the Keyvault where to store the secrets"
+      }
+    },
+    "keyVaultResourceGroupName": {
+      "type": "string",
+      "defaultValue": "Nothing",
+      "metadata": {
+        "description": "The name of the Keyvault where to store the secrets"
+      }
+    }
+  },
+  "variables": {
+    "identity_resource_id": "[concat(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '/providers/Microsoft.ManagedIdentity/Identities/default')]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('functionAppName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[parameters('location')]",
+      "apiVersion": "2018-11-01",
+      "kind": "functionapp",
+      "dependsOn": [
+      ],
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "serverFarmId": "[parameters('hostingPlanResourceId')]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "appSettings": "[parameters('appSettings').settings]",
+          "cors": {
+            "allowedOrigins": "[parameters('corsAllowURL')]",
+            "supportCredentials": false
+          }
+        },
+        "name": "[parameters('functionAppName')]",
+        "clientAffinityEnabled": false
+      }
+    },
+    {
+      "name": "[concat('AddFunctionAuthKeyFrom',parameters('functionAppName'),'-ToKeyvault')]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroupName')]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "[concat('Microsoft.Web/sites/', parameters('functionAppName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), '/BaseTemplates/template-keyVault-secrets.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[parameters('keyVaultName')]"
+          },
+          "secretsObject": {
+            "value": {
+              "secrets": [
+                {
+                  "secretName": "[concat('kv-',parameters('functionAppName'),'-AuthKey')]",
+                  "secretValue": "[listkeys(concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name, '/providers/Microsoft.Web/sites/', parameters('functionAppName'), '/host/default'), '2018-11-01').masterKey]"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "functionObjectId": {
+      "type": "string",
+      "value": "[reference(variables('identity_resource_id'), '2015-08-31-PREVIEW').principalId]"
+    }
+  }
+}

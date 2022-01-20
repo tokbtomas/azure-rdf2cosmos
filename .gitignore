@@ -26,3 +26,5 @@ gradle-app.setting
 
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
+/.vs
+/Azure-Infrastructure-As-Code/.vs/Azure-Infrastructure-As-Code

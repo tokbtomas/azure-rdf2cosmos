@@ -1,0 +1,127 @@
+{
+  "artifactsSaBaseUri": {
+    "value": "$(artifactsSaBaseUri)"
+  },
+  "artifactsSaSasToken": {
+    "value": "$(artifactsSaSasToken)"
+  },
+  "baseName": {
+    "value": "abcd1",
+    "description": "5 chars prefix to name all resources. This value drives all naming convention"
+  },
+  "environment": {
+    "value": "dev"
+  },
+  "deploymentFlags": {
+    "value": {
+      "isNewEnvironment": true,
+      "deployCommonStorage": true,
+      "deploySecrets": true,
+      "setAppKeyVaultPermissions": true,
+      "deployCosmosDb": true,
+      "deployDataMigrationResources": true
+    }
+  },
+  "settings": {
+    "value": {
+      "common": {
+        "tag": "common",
+        "region": "eastus2",
+        "componentId": "test123",
+        "logAnalyticsLocation": "westus2",
+        "storageAccountSKU": "Standard_LRS",
+        "storage": {
+          "description": "All Accounts under this section will be named with the baseName plus the namePostFix",
+          "storageAccounts": [
+            {
+              "tag": "global",
+              "StorageAccountName": "Dynamic",
+              "Containers": [
+                "globalcontainer"
+              ],
+              "numberOfInstances": 1,
+              "location": "eastus2",
+              "storageVersion": "StorageV2",
+              "storageSKU": "Standard_LRS"
+            }
+          ]
+        },
+        "commonVMConfig": {
+          "OSImages": {
+            "SQL": {
+              "imagePublisher": "MicrosoftSQLServer",
+              "sku": "Enterprise",
+              "imageOffer": {
+                "latest": "SQL2019-WS2019",
+                "v1": "SQL2017-WS2019",
+                "v2": "SQL2017-WS2016"
+              }
+            },
+            "Windows": {
+              "imagePublisher": "MicrosoftWindowsServer",
+              "imageOffer": "WindowsServer",
+              "sku": {
+                "latest": "2019-Datacenter",
+                "v1": "2016-Datacenter"
+              }
+            }
+          },
+          "localAdminUserName": "ITDADMIN"
+        }
+      },
+      "secretManager": {
+        "secrets": {
+          "secretList": [
+            {
+              "secretName": "kv-testValidationSecret",
+              "secretValue": "thisIsAtestValidationSecret"
+            },
+            {
+              "secretName": "kv-localAdminPassword",
+              "secretValue": "Update This Value"
+            }
+          ]
+        },
+        "secretReferences": {
+          "localAdminPassword": "kv-localAdminPassword"
+        },
+        "permissions": {
+          "accountList": [
+            {
+              "accountName": "tomabc@mabc.com",
+              "objectId": "1a958091-fb43-4a98-b0ad-8a9c88f5e756"
+            }
+          ]
+        }
+      },
+      "cosmosDbData": {
+        "isFirstDeployment": true,
+        "tag": "data",
+        "enableFreeTier": false,
+        "apiType": "GlobalDocumentDB",
+        "enableApiCapability": "EnableGremlin",
+        "consistecyLevel": "Session",
+        "maxStalenessPrefix": 100,
+        "maxIntervalInSeconds": 5,
+        "replicationLocations": {
+          "secondaryregion": "None"
+        }
+      },
+      "dataMigration": {
+        "isFirstDeployment": true,
+        "tag": "migr",
+        "vnetAddressPrefix": "172.10.0.0/16",
+        "vnetSubnetPrefix": "172.10.0.0/28",
+        "vmConfig": {
+          "numberOfInstances": 1,
+          "vmSize": "Standard_F4s_v2",
+          "storageAccountType": "Premium_LRS",
+          "enableAcceleratedNetworking": true,
+          "dataDiskCount": 2,
+          "dataDiskSizeGB": "256",
+          "driveConfig": "-DriveString H:2 -ResiliencySetting simple -InterleaveValue 262144 -OSAllocationUnitSize 4096 -Verbose"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,240 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "artifactsSaBaseUri": {
+      "type": "string"
+    },
+    "artifactsSaSasToken": {
+      "type": "securestring"
+    },
+    "deploymentFlags": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is the parameter file under parameters folder"
+      }
+    },
+    "settings": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is coming from the parameter File under Parameters"
+      }
+    },
+    "resourceNames": {
+      "type": "Object",
+      "metadata": {
+        "description": "This is coming from the parameter File under Parameters"
+      }
+    }
+  },
+  "variables": {
+    "factoryTemplatePath": "/Factories/"
+  },
+  "resources": [
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "createApplicationKeyVault",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-keyVault.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[parameters('resourceNames').appKeyVaultName]"
+          },
+          "enabledForDiskEncryption": {
+            "value": false
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "createLogAnalytics",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "createApplicationKeyVault"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-logAnalytics.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[parameters('resourceNames').workspaceName]"
+          },
+          "location": {
+            "value": "[parameters('settings').common.logAnalyticsLocation]"
+          },
+          "keyVaultName": {
+            "value": "[parameters('resourceNames').appKeyVaultName]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "addWindowsUpdateSolution",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "createLogAnalytics"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-logAnalytics-solutions.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[parameters('resourceNames').workspaceName]"
+          },
+          "location": {
+            "value": "[parameters('settings').common.logAnalyticsLocation]"
+          },
+          "solutionProductName": {
+            "value": "Updates"
+          },
+          "publisher": {
+            "value": "Microsoft"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "diagnosysStorageAccount",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "createApplicationKeyVault"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-storageAccount.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "storageAccountName": {
+            "value": "[parameters('resourceNames').diagnosysStorageAccountName]"
+          },
+          "storageSKU": {
+            "value": "[parameters('settings').common.storageAccountSKU]"
+          },
+          "keyVaultName": {
+            "value": "[parameters('resourceNames').appKeyVaultName]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "createAppInsights",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "createApplicationKeyVault"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-appInsights.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "appInsightsName": {
+            "value": "[parameters('resourceNames').appInsightsName]"
+          },
+          "keyVaultName": {
+            "value": "[parameters('resourceNames').appKeyVaultName]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').deployCommonStorage]",
+      "name": "[concat(parameters('settings').common.storage.storageAccounts[copyIndex('createCommonStorageLoop')].storageAccountName,'-createCommonStorage')]",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "copy": {
+        "name": "createCommonStorageLoop",
+        "count": "[length(parameters('settings').common.storage.storageAccounts)]"
+      },
+      "dependsOn": [
+        "createApplicationKeyVault"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), variables('factoryTemplatePath'), 'factory-storageaccounts.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "storageAccount": {
+            "value": "[parameters('settings').common.storage.storageAccounts[copyIndex('createCommonStorageLoop')]]"
+          },
+          "resourceGroupName": {
+            "value": "[parameters('resourceNames').commonResourceGroupName]"
+          },
+          "storageAccountBaseName": {
+            "value": "[parameters('resourceNames').storageAccountBaseName]"
+          },
+          "artifactsSaSasToken": {
+            "value": "[parameters('artifactsSaSasToken')]"
+          },
+          "artifactsSaBaseUri": {
+            "value": "[parameters('artifactsSaBaseUri')]"
+          },
+          "keyVaultName": {
+            "value": "[parameters('resourceNames').appKeyVaultName]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('deploymentFlags').isNewEnvironment]",
+      "name": "AddKeyVaultDiagnostics",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('resourceNames').commonResourceGroupName]",
+      "apiVersion": "2018-05-01",
+      "dependsOn": [
+        "createApplicationKeyVault",
+        "createLogAnalytics"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('artifactsSaBaseUri'), parameters('resourceNames').baseTemplatePath, 'template-keyVault-diagnostics.json', parameters('artifactsSaSasToken'))]"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": [
+              "[parameters('resourceNames').appKeyVaultName]"
+            ]
+          },
+          "workspaceId": {
+            "value": "[parameters('resourceNames').workspaceId]"
+          },
+          "retentionDays": {
+            "value": "365"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "appKeyVaultResourceId": {
+      "type": "string",
+      "value": "[if(parameters('deploymentFlags').isNewEnvironment,reference('createApplicationKeyVault').outputs.keyVaultResourceId.value,'Nothing')]"
+    }
+  }
+}
