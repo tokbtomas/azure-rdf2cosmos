@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "Azure-Infrastructure-As-Code", "Azure-Infrastructure-As-Code\Azure-Infrastructure-As-Code.deployproj", "{D5FC4712-AB88-4300-8308-0D5CB7CF3B85}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5FC4712-AB88-4300-8308-0D5CB7CF3B85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FC4712-AB88-4300-8308-0D5CB7CF3B85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5FC4712-AB88-4300-8308-0D5CB7CF3B85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5FC4712-AB88-4300-8308-0D5CB7CF3B85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEFE3C7B-5F45-44AF-B205-E572D5ABEC08}
+	EndGlobalSection
+EndGlobal
