@@ -38,13 +38,13 @@
     "availabilitySetName": "[concat(variables('vmBaseName'),'AVSET')]",
     "listOfScripts": [
       {
-        "powershellFileName": "ConfigureStoragePools.ps1",
-        "powershellParameters": "[parameters('settings').dataMigration.vmConfig.driveConfig]",
+        "powershellFileName": "BaseVirtualMachineConfiguration.ps1",
+        "powershellParameters": "-Verbose",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
-        "powershellFileName": "InstallJRE.ps1",
-        "powershellParameters": "[concat(' -InstallerURI ', parameters('artifactsSaBaseUri'), parameters('resourceNames').installersPath, ' -SASToken ', '\"', parameters('artifactsSaSasToken'), '\"', '  -JREInstallerName ', 'jre-11.0.10.msi' )]",
+        "powershellFileName": "ConfigureStoragePools.ps1",
+        "powershellParameters": "[parameters('settings').dataMigration.vmConfig.driveConfig]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
@@ -59,11 +59,6 @@
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
-        "powershellFileName": "AddSystemVariables.ps1",
-        "powershellParameters": "[concat(' -EnvVariablesList ', 'JENA_HOME=H:\\Apache-Jena\\apache-jena-4.3.2,Path=H:\\Apache-Jena\\apache-jena-4.3.2\\bat')]",
-        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
-      },
-      {
         "powershellFileName": "DownloadFiles.ps1",
         "powershellParameters": "[concat('-fileNameList Git-2.34.1-64-bit.exe',' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath, ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
@@ -75,13 +70,23 @@
       },
       {
         "powershellFileName": "DownloadFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList zuluJDK.msi',' -fileUri ', '\"','https://cdn.azul.com/zulu/bin/zulu17.32.13-ca-jdk17.0.2-win_x64.msi','\"' )]",
+        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',' -fileUri ', '\"','https://cdn.azul.com/zulu/bin/zulu17.32.13-ca-jdk17.0.2-win_x64.msi','\"' )]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
         "powershellFileName": "RunMsiFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList zuluJDK.msi',' -Verbose')]",
+        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',' -Verbose')]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "AddSystemVariables.ps1",
+        "powershellParameters": "[concat(' -EnvVariablesList ', '\"', 'JENA_HOME=H:\\Apache-Jena\\apache-jena-4.3.2,Path=H:\\Apache-Jena\\apache-jena-4.3.2\\bat,JAVA_HOME=C:\\Program Files\\Zulu\\zulu-17','\"')]",
+        "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
+      },
+      {
+        "powershellFileName": "CloneRepository.ps1",
+        "powershellParameters": "[concat('-uri ','\"','https://github.com/cjoakim/azure-rdf2cosmos.git','\"', ' -repositoryName ','RDFToCosmosMigrationTool')]",
+        "isExecute": "[parameters('settings').dataMigration.copyDataMigrationTool]"
       }
     ]
   },
