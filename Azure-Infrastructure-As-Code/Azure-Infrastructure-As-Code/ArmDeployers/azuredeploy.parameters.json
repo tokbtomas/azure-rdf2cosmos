@@ -109,6 +109,7 @@
       },
       "dataMigration": {
         "isFirstDeployment": true,
+        "copyDataMigrationTool": true,
         "tag": "migr",
         "vnetAddressPrefix": "172.10.0.0/16",
         "vnetSubnetPrefix": "172.10.0.0/28",

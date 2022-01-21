@@ -23,7 +23,7 @@ param (
 )
 
                 try {
-
+                    new-EventLog -LogName Application -source 'AzureArmTemplates' -ErrorAction SilentlyContinue
                    # Change E: => F: to move DVD to F because E will be utilized as a data disk.
                     Write-Verbose "Change E: => F: to move DVD to F because E will be utilized as a data disk" -verbose
                     

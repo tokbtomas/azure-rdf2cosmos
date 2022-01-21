@@ -50,13 +50,14 @@
     <None Include="ArmResources\Factories\factory-storageaccounts.json" />
     <None Include="ArmResources\Installers\apache-jena-4.3.2.zip" />
     <None Include="ArmResources\Installers\Git-2.34.1-64-bit.exe" />
-    <None Include="ArmResources\Installers\jre-11.0.10.msi" />
     <None Include="ArmResources\Installers\readme.md" />
     <None Include="ArmResources\Installers\vcredist_x64.exe" />
     <None Include="ArmResources\Scripts\AddSystemVariables.ps1" />
+    <None Include="ArmResources\Scripts\BaseVirtualMachineConfiguration.ps1" />
     <None Include="ArmResources\Scripts\ConfigureStoragePools.ps1" />
     <None Include="ArmResources\Scripts\CopyDataFromShare.ps1" />
     <None Include="ArmResources\Scripts\DownloadFiles.ps1" />
+    <None Include="ArmResources\Scripts\CloneRepository.ps1" />
     <None Include="ArmResources\Scripts\InstallJRE.ps1" />
     <None Include="ArmResources\Scripts\InstallVisualC.ps1" />
     <None Include="ArmResources\Scripts\InstallGit.ps1" />
