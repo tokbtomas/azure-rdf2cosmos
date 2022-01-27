@@ -113,14 +113,17 @@
           "enableFreeTier": {
             "value": "[parameters('settings').cosmosDbData.enableFreeTier]"
           },
+          "enableAnalyticalStorage": {
+            "value": "[parameters('settings').cosmosDbData.enableAnalyticalStorage]"
+          },
           "cosmosAPIType": {
             "value": "[parameters('settings').cosmosDbData.apiType]"
           },
           "ipRules": {
             "value": "[variables('cosmosDbIpRules')]"
           },
-          "APICapability":{
-             "value": "[parameters('settings').cosmosDbData.enableApiCapability]"
+          "APICapability": {
+            "value": "[parameters('settings').cosmosDbData.enableApiCapability]"
           },
           "locations": {
             "value": "[if(equals(parameters('settings').cosmosDbData.replicationLocations.secondaryregion,'None'), 

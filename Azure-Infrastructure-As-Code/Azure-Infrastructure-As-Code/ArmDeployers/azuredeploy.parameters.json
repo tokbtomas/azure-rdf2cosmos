@@ -89,7 +89,7 @@
           "accountList": [
             {
               "accountName": "tomabc@mabc.com",
-              "objectId": "1a958091-fb43-4a98-b0ad-8a9c88f5e756"
+              "objectId": "1a958091-fb43-4e98-b0ad-8a9c88f5e756"
             }
           ]
         }
@@ -98,8 +98,9 @@
         "isFirstDeployment": true,
         "tag": "data",
         "enableFreeTier": false,
+        "enableAnalyticalStorage": true,
         "apiType": "GlobalDocumentDB",
-        "enableApiCapability": "EnableGremlin",
+        "enableApiCapability": "Nothing",
         "consistecyLevel": "Session",
         "maxStalenessPrefix": 100,
         "maxIntervalInSeconds": 5,

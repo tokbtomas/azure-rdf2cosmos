@@ -28,6 +28,13 @@
         "description": "Specifies the if you would like to use the free tier for Cosmos."
       }
     },
+    "enableAnalyticalStorage": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Specifies the if you would like to enable Azure Synapse."
+      }
+    },
     "cosmosAPIType": {
       "type": "string",
       "defaultValue": "MongoDB"
@@ -139,6 +146,7 @@
       "enableFreeTier": "[parameters('enableFreeTier')]",
       "consistencyPolicy": "[variables('consistencyPolicy')[parameters('defaultConsistencyLevel')]]",
       "databaseAccountOfferType": "Standard",
+      "enableAnalyticalStorage": "[parameters('enableAnalyticalStorage')]",
       "locations": "[parameters('locations').value]",
       "ipRules": "[parameters('ipRules').value]"
     },
@@ -147,6 +155,7 @@
       "enableFreeTier": "[parameters('enableFreeTier')]",
       "consistencyPolicy": "[variables('consistencyPolicy')[parameters('defaultConsistencyLevel')]]",
       "databaseAccountOfferType": "Standard",
+      "enableAnalyticalStorage": "[parameters('enableAnalyticalStorage')]",
       "locations": "[parameters('locations').value]",
       "ipRules": "[parameters('ipRules').value]"
     }

@@ -49,33 +49,42 @@
       },
       {
         "powershellFileName": "InstallVisualC.ps1",
-        "powershellParameters": "[concat(' -InstallerURI ', parameters('artifactsSaBaseUri'), parameters('resourceNames').installersPath, ' -SASToken ', '\"', parameters('artifactsSaSasToken'), '\"')]",
+        "powershellParameters": "[concat('-InstallerURI ', parameters('artifactsSaBaseUri'), parameters('resourceNames').installersPath,
+                                        ' -SASToken ', '\"', parameters('artifactsSaSasToken'), '\"')]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
         "comment": "This can be used to download files from the modules folder",
         "powershellFileName": "DownloadFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList ','apache-jena-4.3.2.zip', ' -destinationPath ', 'H:\\Apache-Jena\\', ' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath, ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
+        "powershellParameters": "[concat('-fileNameList ','apache-jena-4.3.2.zip',
+                                        ' -destinationPath ','H:\\Apache-Jena\\',
+                                        ' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath,
+                                        ' -SASToken ','\"',parameters('artifactsSaSasToken'),'\"' )]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
         "powershellFileName": "DownloadFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList Git-2.34.1-64-bit.exe',' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath, ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
+        "powershellParameters": "[concat('-fileNameList ', '\"','Git-2.34.1-64-bit.exe,Net6Runtime.exe','\"',
+                                        ' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath,
+                                        ' -SASToken ', '\"',parameters('artifactsSaSasToken'),'\"' )]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
-        "powershellFileName": "InstallGit.ps1",
-        "powershellParameters": "[concat('-fileName Git-2.34.1-64-bit.exe',' -Verbose')]",
+        "powershellFileName": "RunExeFiles.ps1",
+        "powershellParameters": "[concat('-executeList ','\"','Net6Runtime.exe;/quiet,Git-2.34.1-64-bit.exe;/VERYSILENT','\"',
+                                        ' -Verbose')]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
         "powershellFileName": "DownloadFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',' -fileUri ', '\"','https://cdn.azul.com/zulu/bin/zulu17.32.13-ca-jdk17.0.2-win_x64.msi','\"' )]",
+        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',
+                                        ' -fileUri ', '\"','https://cdn.azul.com/zulu/bin/zulu17.32.13-ca-jdk17.0.2-win_x64.msi','\"' )]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
         "powershellFileName": "RunMsiFiles.ps1",
-        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',' -Verbose')]",
+        "powershellParameters": "[concat('-fileNameList zuluJDK-17.msi',
+                                        ' -Verbose')]",
         "isExecute": "[if(parameters('settings').dataMigration.isFirstDeployment, true(), false())]"
       },
       {
@@ -85,7 +94,8 @@
       },
       {
         "powershellFileName": "CloneRepository.ps1",
-        "powershellParameters": "[concat('-uri ','\"','https://github.com/cjoakim/azure-rdf2cosmos.git','\"', ' -repositoryName ','RDFToCosmosMigrationTool')]",
+        "powershellParameters": "[concat('-uri ','\"','https://github.com/cjoakim/azure-rdf2cosmos.git','\"',
+                                        ' -repositoryName ','RDFToCosmosMigrationTool')]",
         "isExecute": "[parameters('settings').dataMigration.copyDataMigrationTool]"
       }
     ]
