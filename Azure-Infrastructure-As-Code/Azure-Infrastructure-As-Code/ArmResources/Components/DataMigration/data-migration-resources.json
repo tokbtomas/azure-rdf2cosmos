@@ -97,6 +97,15 @@
         "powershellParameters": "[concat('-uri ','\"','https://github.com/cjoakim/azure-rdf2cosmos.git','\"',
                                         ' -repositoryName ','RDFToCosmosMigrationTool')]",
         "isExecute": "[parameters('settings').dataMigration.copyDataMigrationTool]"
+      },
+      {
+        "comment": "This can be used to download files from the modules folder",
+        "powershellFileName": "DownloadFiles.ps1",
+        "powershellParameters": "[concat('-fileNameList ','IntakeJsonToCosmos.zip',
+                                        ' -destinationPath ','H:\\SourceCode\\',
+                                        ' -storageAccountUri ',parameters('artifactsSaBaseUri'),parameters('resourceNames').installersPath,
+                                        ' -SASToken ','\"',parameters('artifactsSaSasToken'),'\"' )]",
+        "isExecute": "[parameters('settings').dataMigration.copyDataMigrationTool]"
       }
     ]
   },

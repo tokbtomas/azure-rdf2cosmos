@@ -50,6 +50,7 @@
     <None Include="ArmResources\Factories\factory-storageaccounts.json" />
     <None Include="ArmResources\Installers\apache-jena-4.3.2.zip" />
     <None Include="ArmResources\Installers\Git-2.34.1-64-bit.exe" />
+    <None Include="ArmResources\Installers\IntakeJsonToCosmos.zip" />
     <None Include="ArmResources\Installers\Net6Runtime.exe" />
     <None Include="ArmResources\Installers\readme.md" />
     <None Include="ArmResources\Installers\vcredist_x64.exe" />
