@@ -54,28 +54,14 @@ $ ./1_convert_raw_rdf_to_jsonld.sh
 start date/time:
 Tue Jan 25 15:55:29 EST 2022
 Removing files in the output directory ...
-VideoAnnotations_MCUTitles
-canonMapTitles
-character
-creativeWork
-manifestation
-mcuTitlesStorylines
-serialWork
-storyContent
+
 tagging
 List of the output jsonld files:
 total 9912
 drwxr-xr-x  11 cjoakim  staff      352 Jan 25 15:55 .
 drwxr-xr-x   5 cjoakim  staff      160 Jan 25 13:42 ..
--rw-r--r--   1 cjoakim  staff  3806962 Jan 25 15:55 VideoAnnotations_MCUTitles.json
--rw-r--r--   1 cjoakim  staff   568505 Jan 25 15:55 canonMapTitles.json
--rw-r--r--   1 cjoakim  staff     8289 Jan 25 15:55 character.json
--rw-r--r--   1 cjoakim  staff    38163 Jan 25 15:55 creativeWork.json
--rw-r--r--   1 cjoakim  staff     8182 Jan 25 15:55 manifestation.json
--rw-r--r--   1 cjoakim  staff   124035 Jan 25 15:55 mcuTitlesStorylines.json
--rw-r--r--   1 cjoakim  staff     8864 Jan 25 15:55 serialWork.json
--rw-r--r--   1 cjoakim  staff     7713 Jan 25 15:55 storyContent.json
--rw-r--r--   1 cjoakim  staff    11497 Jan 25 15:55 tagging.json
+-rw-r--r--   1 cjoakim  staff  3806962 Jan 25 15:55 FileName.json
+
 finish date/time:
 Tue Jan 25 15:55:45 EST 2022
 done
@@ -129,7 +115,7 @@ This design is for simple ad-hoc queries; not for production workloads.
 ```
 q0 | SELECT COUNT(1) FROM c
 q1 | SELECT * FROM c offset 0 limit 10
-q2 | SELECT * FROM c where c.oid = 'http://data.disney.com/interval#0007861e-883b-43c3-83c3-c14452015e67'
+q2 | SELECT * FROM c where c.id = 'http://data.1234.com/interval#0007861e-883b-43c3-83c3-c14452015e67'
 ```
 
 #### Execute the Queries 
