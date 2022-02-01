@@ -28,3 +28,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 /.vs
 /Azure-Infrastructure-As-Code/.vs/Azure-Infrastructure-As-Code
+/IntakeJsonToCosmos/.vs/IntakeJsonToCosmos
+/IntakeJsonToCosmos/IntakeJsonToCosmos/bin/Debug/net6.0
+/IntakeJsonToCosmos/IntakeJsonToCosmos/obj
